@@ -87,6 +87,7 @@ class GitHub__Secrets(Type_Safe):
             print(f"Error deleting secret '{secret_name}': {e}")
             return False
 
+    # todo: figure out the best way to handle the replace_all since is quite an aggressive option (by the fact that this will delete the existing secrets, without a way to recover it)
     def configure_secrets(self, secrets     : Dict[str, str]       ,               # Dictionary of secret_name: secret_value pairs
                                 replace_all : bool       = False                   # Delete existing secrets not in provided dict
                           ) -> Dict[str, bool]:                                     # Returns success/failure for each operation

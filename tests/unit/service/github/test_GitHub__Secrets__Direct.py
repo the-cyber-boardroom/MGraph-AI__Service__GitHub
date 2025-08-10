@@ -1,4 +1,6 @@
 from unittest                                                import TestCase
+
+import pytest
 from requests.exceptions                                     import HTTPError
 from osbot_utils.utils.Env                                   import get_env, load_dotenv
 from osbot_utils.utils.Misc                                  import random_string
@@ -194,6 +196,7 @@ class test_GitHub__Secrets(TestCase):
         for secret_name in secrets.keys():
             assert self.github_secrets.secret_exists(secret_name) is True
 
+    @pytest.mark.skip("this works but the replace_all=True has the side effect of removing the secrets (which we need at the moment to stay there)")
     def test_configure_secrets__replace_all(self):                              # Test replace_all functionality
         # Create initial secrets
         initial_secrets = { f'{self.test_secret_prefix}KEEP'   : 'keep_value'   ,

@@ -31,3 +31,17 @@ class Setup__GitHub__Repo(Type_Safe):
         if secret_value:
             return self.github_secrets.create_or_update_secret(secret_name=secret_name, secret_value=secret_value)
         return False
+
+    def aws_setup__update(self):
+        aws_vars_names = ['AWS_ACCOUNT_ID'        ,
+                          'AWS_DEFAULT_REGION'    ,
+                          'AWS_ACCESS_KEY_ID'     ,
+                          'AWS_SECRET_ACCESS_KEY' ]
+        for aws_var_name in aws_vars_names:
+            secret_name  = aws_var_name
+            secret_value = get_env(aws_var_name)
+            if not secret_value:
+                return False
+            if not self.github_secrets.create_or_update_secret(secret_name=secret_name, secret_value=secret_value):
+                return False
+        return True
