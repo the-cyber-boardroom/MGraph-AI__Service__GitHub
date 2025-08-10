@@ -5,7 +5,6 @@ from osbot_utils.decorators.methods.cache_on_self        import cache_on_self
 from osbot_utils.type_safe.Type_Safe                     import Type_Safe
 from mgraph_ai_service_github.service.github.GitHub__API import GitHub__API
 
-
 class GitHub__Secrets(Type_Safe):
     api_token : str
     repo_name : str
