@@ -1,7 +1,7 @@
 from osbot_utils.type_safe.Type_Safe                          import Type_Safe
 from osbot_utils.utils.Env                                    import get_env
 from mgraph_ai_service_github.config                          import DEPLOY__GITHUB__REPO__OWNER, DEPLOY__GITHUB__REPO__NAME, ENV_VAR__GIT_HUB__ACCESS_TOKEN
-from mgraph_ai_service_github.service.github.GitHub__Secrets import GitHub__Secrets
+from mgraph_ai_service_github.service.github.GitHub__Secrets  import GitHub__Secrets
 
 
 class Setup__GitHub__Repo(Type_Safe):
@@ -32,16 +32,25 @@ class Setup__GitHub__Repo(Type_Safe):
             return self.github_secrets.create_or_update_secret(secret_name=secret_name, secret_value=secret_value)
         return False
 
-    def aws_setup__update(self):
-        aws_vars_names = ['AWS_ACCOUNT_ID'        ,
-                          'AWS_DEFAULT_REGION'    ,
-                          'AWS_ACCESS_KEY_ID'     ,
-                          'AWS_SECRET_ACCESS_KEY' ]
-        for aws_var_name in aws_vars_names:
-            secret_name  = aws_var_name
-            secret_value = get_env(aws_var_name)
+    def update__env_vars(self, env_vars):
+        for env_var in env_vars:
+            secret_name  = env_var
+            secret_value = get_env(env_var)
             if not secret_value:
                 return False
             if not self.github_secrets.create_or_update_secret(secret_name=secret_name, secret_value=secret_value):
                 return False
         return True
+
+    def update__env_vars__aws_deploy(self):
+        aws_vars = ['AWS_ACCOUNT_ID'        ,
+                    'AWS_DEFAULT_REGION'    ,
+                    'AWS_ACCESS_KEY_ID'     ,
+                    'AWS_SECRET_ACCESS_KEY' ]
+        return self.update__env_vars(aws_vars)
+
+    def update__env_vars__fast_api(self):
+        fast_api_vars = ['FAST_API__AUTH__API_KEY__NAME',
+                         'FAST_API__AUTH__API_KEY__VALUE']
+        return self.update__env_vars(fast_api_vars)
+

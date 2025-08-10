@@ -26,6 +26,10 @@ class test_Setup__GitHub__Repo(TestCase):
             assert _.gh_access_token__update() is True
             assert _.gh_access_token__exists() is True
 
-    def test_aws_setup__update(self):
+    def test_update__env_vars__aws_deploy(self):
         with self.setup_github_repo as _:
-            assert _.aws_setup__update() is True
+            assert _.update__env_vars__aws_deploy() is True
+
+    def test_update__env_vars__fast_api(self):
+        with self.setup_github_repo as _:
+            assert _.update__env_vars__fast_api() is True

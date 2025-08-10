@@ -1,6 +1,5 @@
-from unittest                                                import TestCase
-
 import pytest
+from unittest                                                import TestCase
 from requests.exceptions                                     import HTTPError
 from osbot_utils.utils.Env                                   import get_env, load_dotenv
 from osbot_utils.utils.Misc                                  import random_string
