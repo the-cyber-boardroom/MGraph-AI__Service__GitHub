@@ -1,0 +1,14 @@
+from osbot_utils.helpers.Timestamp_Now                                      import Timestamp_Now
+from osbot_utils.helpers.safe_str.Safe_Str__Text                            import Safe_Str__Text
+from osbot_utils.type_safe.Type_Safe                                        import Type_Safe
+from mgraph_ai_service_github.schemas.encryption.Const__Encryption          import NCCL__ALGORITHM
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value  import Safe_Str__Encrypted_Value
+
+
+
+class Schema__Encryption__Response(Type_Safe):                                          # Schema for encryption response
+    algorithm : str = NCCL__ALGORITHM
+    encrypted : Safe_Str__Encrypted_Value    = None                                     # Base64 encoded encrypted data
+    error     : Safe_Str__Text               = None                                     # text of any error messages
+    success   : bool = False
+    timestamp : Timestamp_Now

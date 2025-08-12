@@ -1,4 +1,4 @@
-from osbot_fast_api.api.Fast_API_Routes                import Fast_API_Routes
+from osbot_fast_api.api.Fast_API_Routes                  import Fast_API_Routes
 from mgraph_ai_service_github.service.info.Service_Info  import Service_Info
 
 TAG__ROUTES_INFO                  = 'info'
