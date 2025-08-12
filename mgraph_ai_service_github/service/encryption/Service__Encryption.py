@@ -1,27 +1,27 @@
 import base64
 import json
 import time
-from typing                                                                    import Dict
-from osbot_utils.decorators.methods.cache_on_self                              import cache_on_self
-from osbot_utils.type_safe.Type_Safe                                           import Type_Safe
-from osbot_utils.utils.Env                                                     import get_env
-from mgraph_ai_service_github.utils.deploy.NaCl__Key_Management                import NaCl__Key_Management
-from mgraph_ai_service_github.schemas.encryption.Const__Encryption             import NCCL__ALGORITHM
-from mgraph_ai_service_github.schemas.encryption.Enum__Encryption_Type         import Enum__Encryption_Type
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__Decrypted_Value     import Safe_Str__Decrypted_Value
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value     import Safe_Str__Encrypted_Value
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Private_Key   import Safe_Str__NaCl__Private_Key
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Public_Key    import Safe_Str__NaCl__Public_Key
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Request   import Schema__Decryption__Request
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Response  import Schema__Decryption__Response
+from typing                                                                             import Dict
+from osbot_utils.decorators.methods.cache_on_self                                       import cache_on_self
+from osbot_utils.type_safe.Type_Safe                                                    import Type_Safe
+from osbot_utils.utils.Env                                                              import get_env
+from mgraph_ai_service_github.config                                                    import ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY
+from mgraph_ai_service_github.schemas.encryption.Const__Encryption                      import NCCL__ALGORITHM
+from mgraph_ai_service_github.schemas.encryption.Enum__Encryption_Type                  import Enum__Encryption_Type
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__Decrypted_Value              import Safe_Str__Decrypted_Value
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value              import Safe_Str__Encrypted_Value
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Private_Key            import Safe_Str__NaCl__Private_Key
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Public_Key             import Safe_Str__NaCl__Public_Key
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Request            import Schema__Decryption__Request
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Response           import Schema__Decryption__Response
 from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Request  import Schema__Decryption__Validate__Request
 from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Response import Schema__Decryption__Validate__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Request   import Schema__Encryption__Request
-from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Response  import Schema__Encryption__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Key_Generation__Response import Schema__Key_Generation__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__NaCl__Keys            import Schema__NaCl__Keys
-from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response  import Schema__Public_Key__Response
-
+from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Request            import Schema__Encryption__Request
+from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Response           import Schema__Encryption__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__Key_Generation__Response       import Schema__Key_Generation__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__NaCl__Keys                     import Schema__NaCl__Keys
+from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response           import Schema__Public_Key__Response
+from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                   import NaCl__Key_Management
 
 class Service__Encryption(Type_Safe):
     nacl_manager    : NaCl__Key_Management
@@ -33,9 +33,9 @@ class Service__Encryption(Type_Safe):
         if not self.nacl_manager:
             self.nacl_manager = NaCl__Key_Management()
         if not self.private_key_hex:
-            self.private_key_hex = get_env('SERVICE__AUTH__PRIVATE_KEY', '')
+            self.private_key_hex = get_env(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, '')
         if not self.public_key_hex:
-            self.public_key_hex = get_env('SERVICE__AUTH__PUBLIC_KEY', '')
+            self.public_key_hex = get_env(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY  , '')
 
     @cache_on_self
     def nacl_keys(self) -> Schema__NaCl__Keys:                                  # Get configured NaCl keys

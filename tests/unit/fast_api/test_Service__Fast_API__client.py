@@ -6,8 +6,8 @@ from osbot_utils.utils.Env                                            import get
 from starlette.testclient                                             import TestClient
 from osbot_fast_api_serverless.utils.testing.skip_tests               import skip__if_not__in_github_actions
 from mgraph_ai_service_github.fast_api.Service__Fast_API              import Service__Fast_API
-from mgraph_ai_service_github.fast_api.routes.Routes__Auth import ROUTES_PATHS__AUTH
-from mgraph_ai_service_github.fast_api.routes.Routes__Encryption import ROUTES_PATHS__ENCRYPTION
+from mgraph_ai_service_github.fast_api.routes.Routes__Auth            import ROUTES_PATHS__AUTH
+from mgraph_ai_service_github.fast_api.routes.Routes__Encryption      import ROUTES_PATHS__ENCRYPTION
 from mgraph_ai_service_github.fast_api.routes.Routes__Info            import ROUTES_PATHS__INFO, ROUTES_INFO__HEALTH__RETURN_VALUE
 from tests.unit.Service__Fast_API__Test_Objs                          import setup__service_fast_api_test_objs, Service__Fast_API__Test_Objs, TEST_API_KEY__NAME
 
