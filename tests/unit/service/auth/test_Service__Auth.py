@@ -12,7 +12,7 @@ class test_Service__Auth(TestCase):
     
     @classmethod
     def setUpClass(cls):
-        pytest.mark.skip('needs private keys')
+        pytest.skip('needs private keys')
         cls.test_auth_service                                   = Service__Auth()
         cls.test_private_key_hex, cls.test_public_key_hex       = cls.test_auth_service.generate_nacl_keys()
         
