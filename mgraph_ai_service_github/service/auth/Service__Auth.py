@@ -144,3 +144,88 @@ class Service__Auth(Type_Safe):
                 "auth_configured" : bool(self.private_key_hex and self.public_key_hex)                ,
                 "message"         : "Service API key is valid"                                        }
 
+
+    def encrypt_pat(self, github_pat : str                                      # Plain text GitHub PAT to encrypt
+                     ) -> str:                                                  # Returns base64 encoded encrypted PAT
+        """
+        Encrypts a GitHub PAT for storage and reuse.
+        Uses the service's public key to create a SealedBox encryption.
+        """
+        if not github_pat:
+            raise ValueError("GitHub PAT cannot be empty")
+
+        try:
+            pat_bytes       = github_pat.encode('utf-8')
+            public_key      = self.public_key_object()
+            sealed_box      = SealedBox(public_key)
+            encrypted_bytes = sealed_box.encrypt(pat_bytes)
+
+            return base64.b64encode(encrypted_bytes).decode('utf-8')
+
+        except Exception as e:
+            raise ValueError(f"Failed to encrypt PAT: {str(e)}")
+
+
+    def test_github_pat(self, github_pat : str                                  # Plain text GitHub PAT to test
+                        ) -> Dict:                                               # Returns test result with user info
+        """
+        Tests a plain text GitHub PAT directly against GitHub API.
+        Used during token creation to validate PAT before encryption.
+        """
+        response = { "success"    : False ,
+                    "error"      : None  ,
+                    "error_type" : None  ,
+                    "user"       : None  ,
+                    "rate_limit" : None  }
+
+        if not github_pat:
+            response["error"]      = "GitHub PAT cannot be empty"
+            response["error_type"] = "INVALID_INPUT"
+            return response
+
+        try:
+            github_api      = GitHub__API(api_token=github_pat)
+            user_data       = github_api.get('/user')
+            rate_limit_data = github_api.get('/rate_limit')
+
+            response["success"] = True
+            response["user"]    = { "login"                     : user_data.get("login")                      ,
+                                   "id"                        : user_data.get("id")                          ,
+                                   "name"                      : user_data.get("name")                        ,
+                                   "email"                     : user_data.get("email")                       ,
+                                   "company"                   : user_data.get("company")                    ,
+                                   "created_at"                : user_data.get("created_at")                 ,
+                                   "public_repos"              : user_data.get("public_repos")               ,
+                                   "total_private_repos"       : user_data.get("total_private_repos")        ,
+                                   "owned_private_repos"       : user_data.get("owned_private_repos")        ,
+                                   "collaborators"             : user_data.get("collaborators")              ,
+                                   "two_factor_authentication" : user_data.get("two_factor_authentication")  ,
+                                   "plan"                      : { "name"          : user_data.get("plan", {}).get("name")         ,
+                                                                  "space"         : user_data.get("plan", {}).get("space")        ,
+                                                                  "private_repos" : user_data.get("plan", {}).get("private_repos")} if user_data.get("plan") else None}
+
+            response["rate_limit"] = { "limit"     : rate_limit_data.get("rate", {}).get("limit")     ,
+                                      "remaining" : rate_limit_data.get("rate", {}).get("remaining") ,
+                                      "reset"     : rate_limit_data.get("rate", {}).get("reset")     ,
+                                      "used"      : rate_limit_data.get("rate", {}).get("used")      }
+
+        except Exception as e:
+            error_message = str(e)
+
+            if "401" in error_message:
+                response["error"]      = "GitHub API error: Bad credentials (401)"
+                response["error_type"] = "INVALID_PAT"
+            elif "403" in error_message and "rate limit" in error_message.lower():
+                response["error"]      = "GitHub API error: Rate limit exceeded"
+                response["error_type"] = "RATE_LIMIT"
+            elif "403" in error_message:
+                response["error"]      = "GitHub API error: Forbidden - PAT may lack required scopes"
+                response["error_type"] = "INVALID_PAT"
+            elif "404" in error_message:
+                response["error"]      = "GitHub API error: Resource not found (404)"
+                response["error_type"] = "GITHUB_ERROR"
+            else:
+                response["error"]      = f"GitHub API error: {error_message}"
+                response["error_type"] = "GITHUB_ERROR"
+
+        return response
