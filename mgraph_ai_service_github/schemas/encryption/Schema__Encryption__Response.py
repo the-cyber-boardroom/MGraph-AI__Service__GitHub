@@ -1,6 +1,6 @@
-from osbot_utils.helpers.Timestamp_Now                                      import Timestamp_Now
-from osbot_utils.helpers.safe_str.Safe_Str__Text                            import Safe_Str__Text
 from osbot_utils.type_safe.Type_Safe                                        import Type_Safe
+from osbot_utils.type_safe.primitives.safe_int.Timestamp_Now                import Timestamp_Now
+from osbot_utils.type_safe.primitives.safe_str.text.Safe_Str__Text          import Safe_Str__Text
 from mgraph_ai_service_github.schemas.encryption.Const__Encryption          import NCCL__ALGORITHM
 from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value  import Safe_Str__Encrypted_Value
 

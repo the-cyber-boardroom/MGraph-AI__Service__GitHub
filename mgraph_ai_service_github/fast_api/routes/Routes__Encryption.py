@@ -1,4 +1,4 @@
-from osbot_fast_api.api.Fast_API_Routes                                                 import Fast_API_Routes
+from osbot_fast_api.api.routes.Fast_API__Routes                                         import Fast_API__Routes
 from mgraph_ai_service_github.service.encryption.Service__Encryption                    import Service__Encryption
 from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Request            import Schema__Encryption__Request
 from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Response           import Schema__Encryption__Response
@@ -14,7 +14,7 @@ ROUTES_PATHS__ENCRYPTION = [ f'/{TAG__ROUTES_ENCRYPTION}/public-key'        ,
                              f'/{TAG__ROUTES_ENCRYPTION}/decrypt'           ,
                              f'/{TAG__ROUTES_ENCRYPTION}/validate'          ]
 
-class Routes__Encryption(Fast_API_Routes):
+class Routes__Encryption(Fast_API__Routes):
     tag                : str                  = TAG__ROUTES_ENCRYPTION
     service_encryption : Service__Encryption
 

@@ -1,10 +1,10 @@
 import base64
-from unittest                                                                  import TestCase
-from nacl.public                                                               import PrivateKey, PublicKey
-from mgraph_ai_service_github.schemas.encryption.Schema__NaCl__Keys            import Schema__NaCl__Keys
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Private_Key   import Safe_Str__NaCl__Private_Key
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Public_Key    import Safe_Str__NaCl__Public_Key
-from mgraph_ai_service_github.service.encryption.NaCl__Key_Management           import NaCl__Key_Management
+from unittest                                                                                import TestCase
+from nacl.public                                                                             import PrivateKey, PublicKey
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Schema__NaCl__Keys          import Schema__NaCl__Keys
+from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                        import NaCl__Key_Management
 
 
 class test_NaCl__Key_Management(TestCase):

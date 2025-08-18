@@ -1,9 +1,9 @@
 import base64
-from nacl.public                                                               import PrivateKey, PublicKey, SealedBox
-from osbot_utils.type_safe.Type_Safe                                           import Type_Safe
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Private_Key   import Safe_Str__NaCl__Private_Key
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Public_Key    import Safe_Str__NaCl__Public_Key
-from mgraph_ai_service_github.schemas.encryption.Schema__NaCl__Keys            import Schema__NaCl__Keys
+from nacl.public                                                                             import PrivateKey, PublicKey, SealedBox
+from osbot_utils.type_safe.Type_Safe                                                         import Type_Safe
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Schema__NaCl__Keys          import Schema__NaCl__Keys
 
 
 class NaCl__Key_Management(Type_Safe):

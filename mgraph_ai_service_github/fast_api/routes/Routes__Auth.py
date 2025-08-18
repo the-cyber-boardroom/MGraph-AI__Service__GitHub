@@ -1,6 +1,6 @@
 from typing                                                                    import Dict
 from fastapi                                                                   import Header
-from osbot_fast_api.api.Fast_API_Routes                                        import Fast_API_Routes
+from osbot_fast_api.api.routes.Fast_API__Routes                                import Fast_API__Routes
 from mgraph_ai_service_github.service.auth.Service__Auth                       import Service__Auth
 from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response  import Schema__Public_Key__Response
 
@@ -11,7 +11,7 @@ ROUTES_PATHS__AUTH = [ f'/{TAG__ROUTES_AUTH}/public-key'       ,
                        f'/{TAG__ROUTES_AUTH}/test'             ,
                        f'/{TAG__ROUTES_AUTH}/test-api-key'     ]
 
-class Routes__Auth(Fast_API_Routes):
+class Routes__Auth(Fast_API__Routes):
     tag          : str           = TAG__ROUTES_AUTH
     service_auth : Service__Auth
 

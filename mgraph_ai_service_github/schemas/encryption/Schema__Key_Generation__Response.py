@@ -1,7 +1,8 @@
-from osbot_utils.helpers.Timestamp_Now                                          import Timestamp_Now
-from osbot_utils.type_safe.Type_Safe                                            import Type_Safe
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Private_Key    import Safe_Str__NaCl__Private_Key
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__NaCl__Public_Key     import Safe_Str__NaCl__Public_Key
+
+from osbot_utils.type_safe.Type_Safe                                                         import Type_Safe
+from osbot_utils.type_safe.primitives.safe_int.Timestamp_Now                                 import Timestamp_Now
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
+from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
 
 
 class Schema__Key_Generation__Response(Type_Safe):                          # Schema for key generation response
