@@ -1,6 +1,7 @@
 from unittest                                                                    import TestCase
 from osbot_fast_api.api.Fast_API                                                 import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
 from osbot_fast_api.api.routes.Fast_API__Routes                                  import Fast_API__Routes
+from osbot_fast_api.api.schemas.consts.consts__Fast_API import EXPECTED_ROUTES__SET_COOKIE
 from osbot_utils.type_safe.Type_Safe                                             import Type_Safe
 from osbot_utils.type_safe.primitives.domains.identifiers.safe_int.Timestamp_Now import Timestamp_Now
 from osbot_utils.utils.Env                                                       import get_env, load_dotenv
@@ -20,10 +21,11 @@ class test_Service__Fast_API__with_type_safe_routes(TestCase):
         cls.auth_key_name    = get_env(ENV_VAR__FAST_API__AUTH__API_KEY__NAME)      # todo: add this to Service__Fast_API__Test_Objs
         cls.auth_key_value   = get_env(ENV_VAR__FAST_API__AUTH__API_KEY__VALUE)
         cls.headers          = { cls.auth_key_name: cls.auth_key_value}
-        cls.routes_paths     = sorted(ROUTES_PATHS__INFO       +
-                                      ROUTES_PATHS__AUTH       +
-                                      ROUTES_PATHS__ENCRYPTION +
-                                      ['/type_safe/ping']      )
+        cls.routes_paths     = sorted(ROUTES_PATHS__INFO          +
+                                      ROUTES_PATHS__AUTH          +
+                                      ROUTES_PATHS__ENCRYPTION    +
+                                      EXPECTED_ROUTES__SET_COOKIE +
+                                      ['/type_safe/ping']         )
 
     def setUp(self):
         self.service_fast_api = Service__Fast_API().setup()  # we need fresh copies of this Fast_API service for the tests below (since they are adding routes)
