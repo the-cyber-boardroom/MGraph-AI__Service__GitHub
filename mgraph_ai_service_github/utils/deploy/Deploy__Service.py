@@ -18,8 +18,9 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
     def deploy_lambda(self):
         with super().deploy_lambda() as _:
             # Add any service-specific environment variables here
-            _.set_env_variable(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY , get_env(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY))
-            _.set_env_variable(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, get_env(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY))
+            # re-enabled when this is working
+            # _.set_env_variable(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY , get_env(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY))
+            # _.set_env_variable(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, get_env(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY))
             return _
 
     def handler(self):
