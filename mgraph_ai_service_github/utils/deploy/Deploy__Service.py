@@ -2,9 +2,9 @@ from osbot_aws.aws.lambda_.dependencies.Lambda__Dependency                      
 from osbot_aws.aws.lambda_.schemas.Schema__Lambda__Dependency__Local_Install__Data  import Schema__Lambda__Dependency__Local_Install__Data
 from osbot_fast_api_serverless.deploy.Deploy__Serverless__Fast_API                  import Deploy__Serverless__Fast_API
 from osbot_utils.helpers.duration.decorators.capture_duration                       import capture_duration
-from osbot_utils.utils.Env                                                          import get_env
 from mgraph_ai_service_github.config                                                import SERVICE_NAME, LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS, ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY
 from mgraph_ai_service_github.fast_api.lambda_handler                               import run
+from mgraph_ai_service_github.service.encryption.NaCl__Key_Management               import NaCl__Key_Management
 
 RUNTIME_TO_ABI = {
         "3.12": ("312", "cp312"),
@@ -17,10 +17,13 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
 
     def deploy_lambda(self):
         with super().deploy_lambda() as _:
-            # Add any service-specific environment variables here
-            # re-enabled when this is working
-            # _.set_env_variable(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY , get_env(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY))
-            # _.set_env_variable(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, get_env(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY))
+            # Generate fresh NaCl keys for this deployment
+            nacl_manager = NaCl__Key_Management()
+            nacl_keys    = nacl_manager.generate_nacl_keys()
+
+            # Set encryption keys as Lambda environment variables
+            _.set_env_variable(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY , nacl_keys.public_key )
+            _.set_env_variable(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, nacl_keys.private_key)
             return _
 
     def handler(self):
@@ -52,11 +55,12 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
                  '--python-version' , py                    ,
                  '--abi'            , abi                   ]
 
+    # todo: refactor the code fixes below to the .install() method to the OSBot_AWS project
     def install(self): # this is a method from self.lambda_dependency.dependency__local
         from osbot_utils.utils.Process import Process
-        lambda_runtime = '3.11'
-        lambda_flags = self.lambda_flags(lambda_runtime)
-        self = self.lambda_dependency.dependency__local
+        lambda_runtime     = '3.11'
+        lambda_flags       = self.lambda_flags(lambda_runtime)
+        self               = self.lambda_dependency.dependency__local
         local_install_data = self.install__data()               # failing here, method is executed but this is lost
 
         needs_install = False
@@ -66,7 +70,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
             if 'error' in local_install_data.install_data.get('stderr','').lower():
                 needs_install = True
 
-        if needs_install:                          # at the moment it is none (it shouldn't be)
+        if needs_install:                                       # at the moment it is none (it shouldn't be)
             with capture_duration() as duration__install:
                 target_path = self.path()
                 args = ['install']
