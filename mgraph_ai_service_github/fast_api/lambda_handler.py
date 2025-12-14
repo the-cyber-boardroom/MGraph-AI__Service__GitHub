@@ -17,9 +17,9 @@ if os.getenv('AWS_REGION'):  # only execute if we are not running inside an AWS 
 
     clear_osbot_modules()
 
-from mgraph_ai_service_github.fast_api.Service__Fast_API import Service__Fast_API
+from mgraph_ai_service_github.fast_api.GitHub__Service__Fast_API import GitHub__Service__Fast_API
 
-with Service__Fast_API() as _:
+with GitHub__Service__Fast_API() as _:
     _.setup()
     handler = _.handler()
     app     = _.app()

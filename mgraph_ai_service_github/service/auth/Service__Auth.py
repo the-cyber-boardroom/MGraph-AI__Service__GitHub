@@ -1,12 +1,14 @@
 import base64
-import nacl.exceptions
-from typing                                              import Dict, Optional, Tuple
-from nacl.public                                         import PrivateKey, PublicKey, SealedBox
 import nacl.utils
+import nacl.exceptions
+from typing                                              import Dict
+from nacl.public                                         import PrivateKey, PublicKey, SealedBox
 from osbot_utils.decorators.methods.cache_on_self        import cache_on_self
 from osbot_utils.type_safe.Type_Safe                     import Type_Safe
 from osbot_utils.utils.Env                               import get_env
+from mgraph_ai_service_github.config import ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY, SERVICE_NAME
 from mgraph_ai_service_github.service.github.GitHub__API import GitHub__API
+from mgraph_ai_service_github.utils.Version import version__mgraph_ai_service_github
 
 
 class Service__Auth(Type_Safe):
@@ -16,9 +18,9 @@ class Service__Auth(Type_Safe):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.private_key_hex:
-            self.private_key_hex = get_env('SERVICE__AUTH__PRIVATE_KEY', '')
+            self.private_key_hex = get_env(ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, '')
         if not self.public_key_hex:
-            self.public_key_hex = get_env('SERVICE__AUTH__PUBLIC_KEY', '')
+            self.public_key_hex = get_env(ENV_VAR__SERVICE__AUTH__PUBLIC_KEY, '')
 
     @cache_on_self
     def private_key(self) -> PrivateKey:                                        # Load and cache the private key object
@@ -94,24 +96,24 @@ class Service__Auth(Type_Safe):
 
             response["success"] = True
             response["user"]    = { "login"                     : user_data.get("login")                      ,
-                                   "id"                        : user_data.get("id")                          ,
-                                   "name"                      : user_data.get("name")                        ,
-                                   "email"                     : user_data.get("email")                       ,
-                                   "company"                   : user_data.get("company")                    ,
-                                   "created_at"                : user_data.get("created_at")                 ,
-                                   "public_repos"              : user_data.get("public_repos")               ,
-                                   "total_private_repos"       : user_data.get("total_private_repos")        ,
-                                   "owned_private_repos"       : user_data.get("owned_private_repos")        ,
-                                   "collaborators"             : user_data.get("collaborators")              ,
-                                   "two_factor_authentication" : user_data.get("two_factor_authentication")  ,
-                                   "plan"                      : { "name"          : user_data.get("plan", {}).get("name")         ,
-                                                                  "space"         : user_data.get("plan", {}).get("space")        ,
-                                                                  "private_repos" : user_data.get("plan", {}).get("private_repos")} if user_data.get("plan") else None}
+                                    "id"                        : user_data.get("id")                          ,
+                                    "name"                      : user_data.get("name")                        ,
+                                    "email"                     : user_data.get("email")                       ,
+                                    "company"                   : user_data.get("company")                    ,
+                                    "created_at"                : user_data.get("created_at")                 ,
+                                    "public_repos"              : user_data.get("public_repos")               ,
+                                    "total_private_repos"       : user_data.get("total_private_repos")        ,
+                                    "owned_private_repos"       : user_data.get("owned_private_repos")        ,
+                                    "collaborators"             : user_data.get("collaborators")              ,
+                                    "two_factor_authentication" : user_data.get("two_factor_authentication")  ,
+                                    "plan"                      : { "name"          : user_data.get("plan", {}).get("name")         ,
+                                                                    "space"         : user_data.get("plan", {}).get("space")        ,
+                                                                    "private_repos" : user_data.get("plan", {}).get("private_repos")} if user_data.get("plan") else None}
 
             response["rate_limit"] = { "limit"     : rate_limit_data.get("rate", {}).get("limit")     ,
-                                      "remaining" : rate_limit_data.get("rate", {}).get("remaining") ,
-                                      "reset"     : rate_limit_data.get("rate", {}).get("reset")     ,
-                                      "used"      : rate_limit_data.get("rate", {}).get("used")      }
+                                       "remaining" : rate_limit_data.get("rate", {}).get("remaining") ,
+                                       "reset"     : rate_limit_data.get("rate", {}).get("reset")     ,
+                                       "used"      : rate_limit_data.get("rate", {}).get("used")      }
 
         except Exception as e:
             error_message = str(e)
@@ -135,14 +137,13 @@ class Service__Auth(Type_Safe):
         return response
 
     def test_api_key(self) -> Dict:                                             # Test that the service is running and accessible
-        from mgraph_ai_service_github.utils.Version import version__mgraph_ai_service_github
-        from mgraph_ai_service_github.config        import SERVICE_NAME
-
+        print()
+        print('private_key_hex', self.private_key_hex)
         return { "success"         : True                                                              ,
-                "service"         : SERVICE_NAME                                                      ,
-                "version"         : version__mgraph_ai_service_github                                 ,
-                "auth_configured" : bool(self.private_key_hex and self.public_key_hex)                ,
-                "message"         : "Service API key is valid"                                        }
+                 "service"         : SERVICE_NAME                                                      ,
+                 "version"         : version__mgraph_ai_service_github                                 ,
+                 "auth_configured" : bool(self.private_key_hex and self.public_key_hex)                ,
+                 "message"         : "Service API key is valid"                                        }
 
 
     def encrypt_pat(self, github_pat : str                                      # Plain text GitHub PAT to encrypt

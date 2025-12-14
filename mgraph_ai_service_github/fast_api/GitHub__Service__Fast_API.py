@@ -1,14 +1,14 @@
 from osbot_fast_api.api.routes.Routes__Set_Cookie                import Routes__Set_Cookie
 from osbot_fast_api_serverless.fast_api.Serverless__Fast_API     import Serverless__Fast_API
+from osbot_fast_api_serverless.fast_api.routes.Routes__Info      import Routes__Info
 from mgraph_ai_service_github.config                             import FAST_API__TITLE
 from mgraph_ai_service_github.fast_api.routes.Routes__Auth       import Routes__Auth
 from mgraph_ai_service_github.fast_api.routes.Routes__Encryption import Routes__Encryption
-from mgraph_ai_service_github.fast_api.routes.Routes__Info       import Routes__Info
 from mgraph_ai_service_github.utils.Version                      import version__mgraph_ai_service_github
 
 
 
-class Service__Fast_API(Serverless__Fast_API):
+class GitHub__Service__Fast_API(Serverless__Fast_API):
 
     def fast_api__title(self):                                       # todo: move this to the Fast_API class
         return FAST_API__TITLE

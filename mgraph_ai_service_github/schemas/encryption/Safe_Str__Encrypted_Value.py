@@ -19,17 +19,18 @@ class Safe_Str__Encrypted_Value(Type_Safe__Primitive, str):
     - Base64 encoding (increases size by ~33%)
     """
     max_length      = TYPE_SAFE_STR__ENCRYPTED_DATA__MAX_LENGTH
-    allow_empty     = False
+    allow_empty     = True      # False was causing deserialization issues in FastAPI routes
     trim_whitespace = True
 
     def __new__(cls, value):
-        try:
-            decoded = base64.b64decode(value, validate=True)                            # Check if it's valid base64 by trying to decode
+        if value:
+            try:
+                decoded = base64.b64decode(value, validate=True)                            # Check if it's valid base64 by trying to decode
 
-            if len(decoded) < 48:                                                       # Ensure it has minimum length (at least NaCl overhead) , NaCl SealedBox adds 48 bytes overhead
-                raise ValueError(f"Encrypted data too short to be valid NaCl encryption: {len(decoded)} bytes")
+                if len(decoded) < 48:                                                       # Ensure it has minimum length (at least NaCl overhead) , NaCl SealedBox adds 48 bytes overhead
+                    raise ValueError(f"Encrypted data too short to be valid NaCl encryption: {len(decoded)} bytes")
 
-        except Exception as e:
-            raise ValueError(f"Invalid base64 encoded encrypted data: {str(e)}")
+            except Exception as e:
+                raise ValueError(f"Invalid base64 encoded encrypted data: {str(e)}")
 
         return super().__new__(cls, value)

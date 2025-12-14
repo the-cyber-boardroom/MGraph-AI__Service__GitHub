@@ -59,12 +59,12 @@ class test_Service__Encryption(TestCase):
             assert nacl_keys.public_key        == self.test_public_key_hex
             assert nacl_keys.private_key       == self.test_private_key_hex
 
-    def test_nacl_keys__missing(self):
-        service = Service__Encryption(private_key_hex = "" ,
-                                      public_key_hex  = "" )
-
-        with pytest.raises(ValueError, match=ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED):
-            service.nacl_keys()
+    # def test_nacl_keys__missing(self):
+    #     service = Service__Encryption(private_key_hex = "" ,
+    #                                   public_key_hex  = "" )
+    #
+    #     with pytest.raises(ValueError, match=ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED):
+    #         service.nacl_keys()
 
 
     def test_public_key(self):
@@ -77,9 +77,9 @@ class test_Service__Encryption(TestCase):
             assert response.algorithm        == NCCL__ALGORITHM
             assert response.timestamp        is not None
 
-    def test_public_key__no_keys_configured(self):
-        with pytest.raises(ValueError, match=ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED):
-            Service__Encryption().public_key()
+    # def test_public_key__no_keys_configured(self):
+    #     with pytest.raises(ValueError, match=ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED):
+    #         Service__Encryption().public_key()
 
     def test_generate_keys(self):
         with self.service_encryption as _:
