@@ -1,16 +1,16 @@
-from unittest                                                                   import TestCase
-from osbot_fast_api.api.Fast_API                                                import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
-from osbot_fast_api.api.routes.Fast_API__Routes                                 import Fast_API__Routes
-from osbot_utils.type_safe.Type_Safe                                            import Type_Safe
-from osbot_utils.type_safe.primitives.safe_int.Timestamp_Now                    import Timestamp_Now
-from osbot_utils.utils.Env                                                      import get_env, load_dotenv
-from osbot_utils.utils.Misc                                                     import random_text
-from mgraph_ai_service_github.fast_api.Service__Fast_API                        import Service__Fast_API
-from mgraph_ai_service_github.fast_api.routes.Routes__Auth                      import ROUTES_PATHS__AUTH
-from mgraph_ai_service_github.fast_api.routes.Routes__Encryption                import ROUTES_PATHS__ENCRYPTION
-from mgraph_ai_service_github.fast_api.routes.Routes__Info                      import ROUTES_PATHS__INFO
-from mgraph_ai_service_github.schemas.encryption.Const__Encryption              import NCCL__ALGORITHM
-from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response   import Schema__Public_Key__Response
+from unittest                                                                    import TestCase
+from osbot_fast_api.api.Fast_API                                                 import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
+from osbot_fast_api.api.routes.Fast_API__Routes                                  import Fast_API__Routes
+from osbot_utils.type_safe.Type_Safe                                             import Type_Safe
+from osbot_utils.type_safe.primitives.domains.identifiers.safe_int.Timestamp_Now import Timestamp_Now
+from osbot_utils.utils.Env                                                       import get_env, load_dotenv
+from osbot_utils.utils.Misc                                                      import random_text
+from mgraph_ai_service_github.fast_api.Service__Fast_API                         import Service__Fast_API
+from mgraph_ai_service_github.fast_api.routes.Routes__Auth                       import ROUTES_PATHS__AUTH
+from mgraph_ai_service_github.fast_api.routes.Routes__Encryption                 import ROUTES_PATHS__ENCRYPTION
+from mgraph_ai_service_github.fast_api.routes.Routes__Info                       import ROUTES_PATHS__INFO
+from mgraph_ai_service_github.schemas.encryption.Const__Encryption               import NCCL__ALGORITHM
+from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response    import Schema__Public_Key__Response
 
 class test_Service__Fast_API__with_type_safe_routes(TestCase):
 

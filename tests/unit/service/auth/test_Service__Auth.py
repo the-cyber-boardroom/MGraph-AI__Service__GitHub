@@ -1,8 +1,7 @@
+import pytest
 import base64
 from unittest                                                import TestCase
 from unittest.mock                                           import patch, MagicMock
-
-import pytest
 from nacl.public                                             import PrivateKey, PublicKey, SealedBox
 from osbot_utils.utils.Env                                   import set_env, get_env
 from mgraph_ai_service_github.service.auth.Service__Auth     import Service__Auth

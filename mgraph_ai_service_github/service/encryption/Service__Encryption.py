@@ -4,9 +4,9 @@ import time
 from typing                                                                                     import Dict
 from osbot_utils.decorators.methods.cache_on_self                                               import cache_on_self
 from osbot_utils.type_safe.Type_Safe                                                            import Type_Safe
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Private_Key    import Safe_Str__NaCl__Private_Key
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Public_Key     import Safe_Str__NaCl__Public_Key
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Schema__NaCl__Keys             import Schema__NaCl__Keys
+from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
+from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
+from osbot_utils.type_safe.primitives.domains.cryptography.schemas.Schema__NaCl__Keys           import Schema__NaCl__Keys
 from osbot_utils.utils.Env                                                                      import get_env
 from mgraph_ai_service_github.config                                                            import ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY
 from mgraph_ai_service_github.schemas.encryption.Const__Encryption                              import NCCL__ALGORITHM

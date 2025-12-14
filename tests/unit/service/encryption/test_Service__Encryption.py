@@ -1,24 +1,24 @@
 import pytest
 import base64
 import json
-from unittest                                                                                import TestCase
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
-from osbot_utils.type_safe.primitives.safe_str.cryptography.nacl.Schema__NaCl__Keys          import Schema__NaCl__Keys
-from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                        import NaCl__Key_Management
-from mgraph_ai_service_github.service.encryption.Service__Encryption                         import Service__Encryption
-from mgraph_ai_service_github.schemas.encryption.Const__Encryption                           import NCCL__ALGORITHM, ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED
-from mgraph_ai_service_github.schemas.encryption.Enum__Encryption_Type                       import Enum__Encryption_Type
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__Decrypted_Value                   import Safe_Str__Decrypted_Value
-from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value                   import Safe_Str__Encrypted_Value
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Request                 import Schema__Decryption__Request
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Response                import Schema__Decryption__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Request       import Schema__Decryption__Validate__Request
-from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Response      import Schema__Decryption__Validate__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Request                 import Schema__Encryption__Request
-from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Response                import Schema__Encryption__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Key_Generation__Response            import Schema__Key_Generation__Response
-from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response                import Schema__Public_Key__Response
+from unittest                                                                                   import TestCase
+from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__NaCl__Private_Key import Safe_Str__NaCl__Private_Key
+from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__NaCl__Public_Key  import Safe_Str__NaCl__Public_Key
+from osbot_utils.type_safe.primitives.domains.cryptography.schemas.Schema__NaCl__Keys           import Schema__NaCl__Keys
+from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                           import NaCl__Key_Management
+from mgraph_ai_service_github.service.encryption.Service__Encryption                            import Service__Encryption
+from mgraph_ai_service_github.schemas.encryption.Const__Encryption                              import NCCL__ALGORITHM, ERROR_MESSAGE__ENCRYPTION_KEYS_NOT_CONFIGURED
+from mgraph_ai_service_github.schemas.encryption.Enum__Encryption_Type                          import Enum__Encryption_Type
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__Decrypted_Value                      import Safe_Str__Decrypted_Value
+from mgraph_ai_service_github.schemas.encryption.Safe_Str__Encrypted_Value                      import Safe_Str__Encrypted_Value
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Request                    import Schema__Decryption__Request
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Response                   import Schema__Decryption__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Request          import Schema__Decryption__Validate__Request
+from mgraph_ai_service_github.schemas.encryption.Schema__Decryption__Validate__Response         import Schema__Decryption__Validate__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Request                    import Schema__Encryption__Request
+from mgraph_ai_service_github.schemas.encryption.Schema__Encryption__Response                   import Schema__Encryption__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__Key_Generation__Response               import Schema__Key_Generation__Response
+from mgraph_ai_service_github.schemas.encryption.Schema__Public_Key__Response                   import Schema__Public_Key__Response
 
 
 class test_Service__Encryption(TestCase):
