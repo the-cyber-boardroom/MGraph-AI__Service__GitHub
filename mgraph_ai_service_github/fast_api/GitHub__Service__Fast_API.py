@@ -4,6 +4,9 @@ from osbot_fast_api_serverless.fast_api.routes.Routes__Info      import Routes__
 from mgraph_ai_service_github.config                             import FAST_API__TITLE
 from mgraph_ai_service_github.fast_api.routes.Routes__Auth       import Routes__Auth
 from mgraph_ai_service_github.fast_api.routes.Routes__Encryption import Routes__Encryption
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Env import Routes__GitHub__Secrets__Env
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Org import Routes__GitHub__Secrets__Org
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Repo import Routes__GitHub__Secrets__Repo
 from mgraph_ai_service_github.utils.Version                      import version__mgraph_ai_service_github
 
 
@@ -25,10 +28,13 @@ class GitHub__Service__Fast_API(Serverless__Fast_API):
         return self
 
     def setup_routes(self):
-        self.add_routes(Routes__Auth         )
-        self.add_routes(Routes__Encryption   )
-        self.add_routes(Routes__Info         )
-        self.add_routes(Routes__Set_Cookie   )
+        self.add_routes(Routes__GitHub__Secrets__Repo)
+        self.add_routes(Routes__GitHub__Secrets__Env )
+        self.add_routes(Routes__GitHub__Secrets__Org )
+        self.add_routes(Routes__Auth                 )
+        self.add_routes(Routes__Encryption           )
+        self.add_routes(Routes__Info                 )
+        self.add_routes(Routes__Set_Cookie           )
 
 
 

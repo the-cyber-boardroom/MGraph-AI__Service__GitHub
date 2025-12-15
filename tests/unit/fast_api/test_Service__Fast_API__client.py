@@ -1,14 +1,17 @@
-from unittest                                                         import TestCase
-from fastapi                                                          import FastAPI
-from osbot_fast_api.api.Fast_API                                      import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
-from osbot_fast_api.api.schemas.consts.consts__Fast_API               import EXPECTED_ROUTES__SET_COOKIE
-from osbot_fast_api_serverless.fast_api.routes.Routes__Info           import ROUTES_INFO__HEALTH__RETURN_VALUE, ROUTES_PATHS__INFO
-from osbot_utils.utils.Env                                            import get_env
-from starlette.testclient                                             import TestClient
-from mgraph_ai_service_github.fast_api.GitHub__Service__Fast_API      import GitHub__Service__Fast_API
-from mgraph_ai_service_github.fast_api.routes.Routes__Auth            import ROUTES_PATHS__AUTH
-from mgraph_ai_service_github.fast_api.routes.Routes__Encryption      import ROUTES_PATHS__ENCRYPTION
-from tests.unit.GitHub__Service__Fast_API__Test_Objs                  import setup__github_service_fast_api_test_objs, GitHub__Service__Fast_API__Test_Objs, TEST_API_KEY__NAME
+from unittest                                                               import TestCase
+from fastapi                                                                import FastAPI
+from osbot_fast_api.api.Fast_API                                            import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
+from osbot_fast_api.api.schemas.consts.consts__Fast_API                     import EXPECTED_ROUTES__SET_COOKIE
+from osbot_fast_api_serverless.fast_api.routes.Routes__Info                 import ROUTES_INFO__HEALTH__RETURN_VALUE, ROUTES_PATHS__INFO
+from osbot_utils.utils.Env                                                  import get_env
+from starlette.testclient                                                   import TestClient
+from mgraph_ai_service_github.fast_api.GitHub__Service__Fast_API            import GitHub__Service__Fast_API
+from mgraph_ai_service_github.fast_api.routes.Routes__Auth                  import ROUTES_PATHS__AUTH
+from mgraph_ai_service_github.fast_api.routes.Routes__Encryption            import ROUTES_PATHS__ENCRYPTION
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Env  import ROUTES_PATHS__GITHUB_SECRETS_ENV
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Org  import ROUTES_PATHS__GITHUB_SECRETS_ORG
+from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Repo import ROUTES_PATHS__GITHUB_SECRETS_REPO
+from tests.unit.GitHub__Service__Fast_API__Test_Objs                        import setup__github_service_fast_api_test_objs, GitHub__Service__Fast_API__Test_Objs, TEST_API_KEY__NAME
 
 
 class test_Service__Fast_API__client(TestCase):
@@ -50,7 +53,10 @@ class test_Service__Fast_API__client(TestCase):
         assert response__with_auth.json()    == ROUTES_INFO__HEALTH__RETURN_VALUE
 
     def test__config_fast_api_routes(self):
-        assert self.fast_api.routes_paths() == sorted(ROUTES_PATHS__INFO         +
-                                                      ROUTES_PATHS__AUTH         +
-                                                      ROUTES_PATHS__ENCRYPTION   +
-                                                      EXPECTED_ROUTES__SET_COOKIE)
+        assert self.fast_api.routes_paths() == sorted(ROUTES_PATHS__INFO                +
+                                                      ROUTES_PATHS__AUTH                +
+                                                      ROUTES_PATHS__ENCRYPTION          +
+                                                      EXPECTED_ROUTES__SET_COOKIE       +
+                                                      ROUTES_PATHS__GITHUB_SECRETS_REPO +
+                                                      ROUTES_PATHS__GITHUB_SECRETS_ENV  +
+                                                      ROUTES_PATHS__GITHUB_SECRETS_ORG  )
