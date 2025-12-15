@@ -89,5 +89,5 @@ class test_Routes__Encryption__QA__error_cases(TestCase):                       
                             'encryption_type': 'text'                }
             response     = _.post('/encryption/decrypt', json=request_data)
 
-            # Should return error (either 422 validation or 200 with error)
-            assert response.status_code in [200, 422]
+            assert response.json().get('error') == 'Invalid base64 encoded encrypted data: Only base64 data is allowed'
+            assert response.status_code == 500

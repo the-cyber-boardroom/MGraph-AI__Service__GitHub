@@ -32,7 +32,7 @@ class test_Routes__Info__QA(TestCase):                                          
             result   = response.json()
 
             assert response.status_code    == 200
-            assert result.get('name')      == 'mgraph_ai_service_github'
+            assert result.get('name')      == 'osbot_fast_api_serverless'
             assert result.get('status')    == 'operational'
             assert result.get('version')   is not None                              # e.g., 'v0.6.3'
             assert result.get('environment') in ['aws-lambda', 'local']
@@ -43,16 +43,13 @@ class test_Routes__Info__QA(TestCase):                                          
             result   = response.json()
 
             assert response.status_code == 200
-            assert list_set(result)     == [ 'mgraph_ai_service_github'   ,
-                                             'osbot_aws'                  ,
-                                             'osbot_fast_api'             ,
-                                             'osbot_fast_api_serverless'  ,
-                                             'osbot_utils'                ]
+            assert list_set(result)     == ['osbot_fast_api',
+                                            'osbot_fast_api_serverless',
+                                            'osbot_utils']
 
-            assert result.get('mgraph_ai_service_github') is not None               # Verify all versions are present
-            assert result.get('osbot_utils')             is not None
-            assert result.get('osbot_aws')               is not None
-            assert result.get('osbot_fast_api')          is not None
+            assert result.get('osbot_utils'              ) is not None
+            assert result.get('osbot_fast_api_serverless') is not None
+            assert result.get('osbot_fast_api'           ) is not None
 
     def test_server(self):                                                          # GET /info/server - Server info
         with self.http_client as _:

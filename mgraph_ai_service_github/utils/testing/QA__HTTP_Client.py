@@ -56,6 +56,30 @@ class QA__HTTP_Client(Type_Safe):                                               
                                  headers = request_headers    ,
                                  timeout = self.timeout       )
 
+    def put(self, path    : str           ,                                         # PUT request with authentication
+                  json    : dict = None   ,
+                  headers : dict = None
+             ) -> Response:
+        request_headers = self.auth_headers()
+        if headers:
+            request_headers.update(headers)
+        return self.session.put(url     = self.url_for(path) ,
+                                json    = json               ,
+                                headers = request_headers    ,
+                                timeout = self.timeout       )
+
+    def delete(self, path    : str           ,                                      # DELETE request with authentication
+                     json    : dict = None   ,
+                     headers : dict = None
+                ) -> Response:
+        request_headers = self.auth_headers()
+        if headers:
+            request_headers.update(headers)
+        return self.session.delete(url     = self.url_for(path) ,
+                                   json    = json               ,
+                                   headers = request_headers    ,
+                                   timeout = self.timeout       )
+
 
 class QA__Test_Objs(Type_Safe):                                                     # Shared test objects for QA tests
     http_client     : QA__HTTP_Client = None
