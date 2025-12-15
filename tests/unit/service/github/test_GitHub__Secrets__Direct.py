@@ -1,5 +1,6 @@
 import pytest
 from unittest                                                import TestCase
+from osbot_fast_api_serverless.utils.testing.skip_tests      import skip__if_not__in_github_actions
 from requests.exceptions                                     import HTTPError
 from osbot_utils.utils.Env                                   import get_env, load_dotenv
 from osbot_utils.utils.Misc                                  import random_string
@@ -14,6 +15,7 @@ class test_GitHub__Secrets(TestCase):
 
     @classmethod
     def setUpClass(cls):                                                                        # Setup test configuration
+        skip__if_not__in_github_actions()
         load_dotenv()
         cls.test_repo_owner = get_env('GITHUB_TEST_REPO_OWNER', DEFAULT_GITHUB__REPO_OWNER)
         cls.test_repo_name  = get_env('GITHUB_TEST_REPO_NAME' , DEFAULT_GITHUB__REPO_NAME)
@@ -22,7 +24,7 @@ class test_GitHub__Secrets(TestCase):
 
     def setUp(self):                                                              # Initialize test fixtures
         self.github_secrets = GitHub__Secrets(repo_name = self.test_repo ,
-                                                      api_token = self.api_token )
+                                              api_token = self.api_token )
         self.test_secret_prefix = 'TEST_SECRET_'
         self.test_secret_name   = f'{self.test_secret_prefix}{random_string(8).upper()}'
 

@@ -9,6 +9,3 @@ pytest-cov
 # for fastapi testing
 httpx
 requests
-
-# for local-stack support
-osbot_local_stack

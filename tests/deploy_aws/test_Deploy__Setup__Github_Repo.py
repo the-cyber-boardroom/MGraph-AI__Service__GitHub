@@ -1,5 +1,6 @@
+import pytest
 from unittest                                                   import TestCase
-from osbot_utils.utils.Env                                      import load_dotenv
+from osbot_utils.utils.Env                                      import load_dotenv, env_var_set
 from mgraph_ai_service_github.config                            import ENV_VAR__GIT_HUB__ACCESS_TOKEN
 from mgraph_ai_service_github.service.github.GitHub__Secrets    import GitHub__Secrets
 from mgraph_ai_service_github.utils.deploy.Setup__GitHub__Repo  import Setup__GitHub__Repo
@@ -27,6 +28,8 @@ class test_Setup__GitHub__Repo(TestCase):
             assert _.gh_access_token__exists() is True
 
     def test_update__env_vars__aws_deploy(self):
+        if env_var_set('AWS_ACCOUNT_ID') is False:
+            pytest.skip("skiping tests because AWS_ACCOUNT_ID is not set")
         with self.setup_github_repo as _:
             assert _.update__env_vars__aws_deploy() is True
 

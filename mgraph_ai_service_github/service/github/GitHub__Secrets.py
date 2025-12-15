@@ -1,13 +1,14 @@
 import base64
 from typing                                              import Dict, List, Any, Optional
-from nacl                                                import encoding, public
+from nacl                                                import public
 from osbot_utils.decorators.methods.cache_on_self        import cache_on_self
 from osbot_utils.type_safe.Type_Safe                     import Type_Safe
 from mgraph_ai_service_github.service.github.GitHub__API import GitHub__API
 
+# todo: this class needs to be split in two: one focused only on the REST calls and one that provides an easy api to access and manipulate the secrets
 class GitHub__Secrets(Type_Safe):
     api_token : str
-    repo_name : str
+    repo_name : str             # BUG refactor to repo_owner and github_name (and use type_safe vars)
     api       : GitHub__API = None
 
     def __init__(self, **kwargs):
@@ -17,7 +18,7 @@ class GitHub__Secrets(Type_Safe):
 
         # Parse repo name into owner and repo
         if '/' in self.repo_name:
-            self.owner, self.repo = self.repo_name.split('/', 1)
+            self.owner, self.repo = self.repo_name.split('/', 1)                    # todo: these should be type safe variables
         else:
             raise ValueError("repo_name must be in format 'owner/repo'")
 
@@ -59,6 +60,40 @@ class GitHub__Secrets(Type_Safe):
         except Exception:
             return None
 
+    def get_environment_secret(self, environment : str ,                           # Environment name
+                                     secret_name : str                             # Name of the secret
+                               ) -> Optional[Dict[str, str]]:                      # Returns secret metadata (not the value)
+        try:
+            endpoint = f"/repos/{self.owner}/{self.repo}/environments/{environment}/secrets/{secret_name}"
+            response = self.api.get(endpoint)
+            return { 'name'       : response.get('name')       ,
+                     'created_at' : response.get('created_at') ,
+                     'updated_at' : response.get('updated_at') }
+        except Exception:
+            return None
+
+    def get_org_secret(self, org_name    : str ,                                   # Organization name
+                             secret_name : str                                     # Name of the secret
+                       ) -> Optional[Dict[str, str]]:                              # Returns secret metadata (not the value)
+        try:
+            endpoint = f"/orgs/{org_name}/actions/secrets/{secret_name}"
+            response = self.api.get(endpoint)
+            return { 'name'                      : response.get('name')                      ,
+                     'created_at'                : response.get('created_at')                ,
+                     'updated_at'                : response.get('updated_at')                ,
+                     'visibility'                : response.get('visibility')                ,
+                     'selected_repositories_url' : response.get('selected_repositories_url') }
+        except Exception:
+            return None
+
+    def get_secret_by_scope(self, secret_name : str                    ,           # Name of the secret
+                                  environment : str = None                         # Environment name (optional)
+                           ) -> Optional[Dict[str, str]]:                          # Returns secret metadata (not the value)
+        if environment:
+            return self.get_environment_secret(environment, secret_name)
+        else:
+            return self.get_secret(secret_name)
+
     def create_or_update_secret(self, secret_name  : str ,                         # Name of the secret
                                       secret_value : str                            # Value of the secret
                                 ) -> bool:                                          # Returns True if successful
@@ -87,6 +122,34 @@ class GitHub__Secrets(Type_Safe):
             print(f"Error deleting secret '{secret_name}': {e}")
             return False
 
+    def delete_environment_secret(self, environment : str ,                        # Environment name
+                                        secret_name : str                          # Name of the secret
+                                  ) -> bool:                                       # Returns True if successful
+        try:
+            endpoint = f"/repos/{self.owner}/{self.repo}/environments/{environment}/secrets/{secret_name}"
+            return self.api.delete(endpoint)
+        except Exception as e:
+            print(f"Error deleting environment secret '{secret_name}': {e}")
+            return False
+
+    def delete_secret_by_scope(self, secret_name : str               ,             # Name of the secret
+                                     environment : str = None                      # Environment name (optional)
+                              ) -> bool:                                           # Returns True if successful
+        if environment:
+            return self.delete_environment_secret(environment, secret_name)
+        else:
+            return self.delete_secret(secret_name)
+
+    def delete_org_secret(self, org_name    : str ,                                # Organization name
+                                secret_name : str                                  # Name of the secret
+                         ) -> bool:                                                # Returns True if successful
+        try:
+            endpoint = f"/orgs/{org_name}/actions/secrets/{secret_name}"
+            return self.api.delete(endpoint)
+        except Exception as e:
+            print(f"Error deleting org secret '{secret_name}': {e}")
+            return False
+
     # todo: figure out the best way to handle the replace_all since is quite an aggressive option (by the fact that this will delete the existing secrets, without a way to recover it)
     def configure_secrets(self, secrets     : Dict[str, str]       ,               # Dictionary of secret_name: secret_value pairs
                                 replace_all : bool       = False                   # Delete existing secrets not in provided dict
@@ -113,6 +176,13 @@ class GitHub__Secrets(Type_Safe):
     def secret_exists(self, secret_name : str                                      # Name of the secret
                       ) -> bool:                                                    # Returns True if the secret exists
         return self.get_secret(secret_name) is not None
+
+    def secrets_names(self, environment=None) -> List[str]:
+        if environment:
+            secrets = self.list_environment_secrets(environment=environment)
+        else:
+            secrets = self.list_secrets()
+        return [secret.get('name') for secret in secrets]
 
     def configure_from_env_vars(self, env_mapping : Dict[str, str]                 # Maps secret_name to env_var_name
                                 ) -> Dict[str, bool]:                               # Returns success/failure for each operation
@@ -188,8 +258,8 @@ class GitHub__Secrets(Type_Safe):
         secrets = []
         for secret in response.get('secrets', []):
             secrets.append({ 'name'       : secret.get('name')       ,
-                            'created_at' : secret.get('created_at') ,
-                            'updated_at' : secret.get('updated_at') })
+                             'created_at' : secret.get('created_at') ,
+                             'updated_at' : secret.get('updated_at') })
 
         return secrets
 
@@ -214,3 +284,12 @@ class GitHub__Secrets(Type_Safe):
         except Exception as e:
             print(f"Error creating/updating environment secret '{secret_name}': {e}")
             return False
+
+    def create_or_update_secret_by_scope(self, secret_name  : str            ,     # Name of the secret
+                                               secret_value : str            ,     # Value of the secret
+                                               environment  : str = None           # Environment name (optional)
+                                        ) -> bool:                                 # Returns True if successful
+        if environment:
+            return self.create_or_update_environment_secret(environment, secret_name, secret_value)
+        else:
+            return self.create_or_update_secret(secret_name, secret_value)
