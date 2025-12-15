@@ -1,4 +1,5 @@
 from unittest                                               import TestCase
+from osbot_fast_api_serverless.utils.testing.skip_tests     import skip__if_not__in_github_actions
 from requests.exceptions                                    import HTTPError
 from osbot_utils.utils.Env                                  import get_env,load_dotenv
 from mgraph_ai_service_github.config                        import DEPLOY__GITHUB__REPO__OWNER, DEPLOY__GITHUB__REPO__NAME
@@ -8,6 +9,7 @@ class test_GitHub__API(TestCase):
 
     @classmethod
     def setUpClass(cls):                                                                        # Setup test configuration
+        skip__if_not__in_github_actions()
         cls.test_repo_owner = DEPLOY__GITHUB__REPO__OWNER     # Replace with your org/user
         cls.test_repo_name  = DEPLOY__GITHUB__REPO__NAME      # Replace with your test repo
         cls.test_repo       = f'{cls.test_repo_owner}/{cls.test_repo_name}'

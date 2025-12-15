@@ -17,7 +17,7 @@ class GitHub__Secrets(Type_Safe):
 
         # Parse repo name into owner and repo
         if '/' in self.repo_name:
-            self.owner, self.repo = self.repo_name.split('/', 1)
+            self.owner, self.repo = self.repo_name.split('/', 1)                    # todo: these should be type safe variables
         else:
             raise ValueError("repo_name must be in format 'owner/repo'")
 
