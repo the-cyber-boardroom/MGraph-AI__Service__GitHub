@@ -1,6 +1,6 @@
 import base64
 from typing                                              import Dict, List, Any, Optional
-from nacl                                                import encoding, public
+from nacl                                                import public
 from osbot_utils.decorators.methods.cache_on_self        import cache_on_self
 from osbot_utils.type_safe.Type_Safe                     import Type_Safe
 from mgraph_ai_service_github.service.github.GitHub__API import GitHub__API

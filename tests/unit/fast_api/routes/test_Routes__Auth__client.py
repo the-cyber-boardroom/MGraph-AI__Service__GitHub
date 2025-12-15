@@ -170,66 +170,6 @@ class test_Routes__Auth__client(TestCase):
     # Full Flow Tests (Encryption Round-Trip)
     # ═══════════════════════════════════════════════════════════════════════════════
 
-    def test__bug__fast_api__response__base_model__not_handing__none_values__in_type_safe_primitives(self):
-        from osbot_fast_api.api.Fast_API import Fast_API
-
-        class An_Response_Class(Type_Safe):
-            an_str : Safe_Str = None
-
-        class Routes__ABC(Fast_API__Routes):
-            def an_post__fails(self) -> An_Response_Class:
-                return An_Response_Class()
-
-            def an_post__ok_1(self) -> An_Response_Class:
-                return An_Response_Class(an_str='')
-
-            def an_post__ok_2(self) -> An_Response_Class:
-                return An_Response_Class(an_str='ok')
-
-            def setup_routes(self):
-                self.add_routes_post(self.an_post__fails,
-                                     self.an_post__ok_1 ,
-                                     self.an_post__ok_2 )
-
-        config  = Schema__Fast_API__Config(default_routes=False)
-        class Fast_API__Abc(Fast_API):
-            def setup_routes(self):
-                self.add_routes(Routes__ABC)
-                return self
-
-        fast_api_abc = Fast_API__Abc(config=config).setup()
-        assert fast_api_abc.routes_paths() == ['/an-post/fails',
-                                               '/an-post/ok-1',
-                                               '/an-post/ok-2']
-
-        with fast_api_abc.client() as _:
-            error_message = "1 validation error for An_Response_Class__BaseModel\nan_str\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type"
-            with pytest.raises(ValueError, match=re.escape(error_message)):
-                _.post(url='/an-post/fails')                                # BUG: should have worked
-
-            assert _.post(url='/an-post/ok-1').json() == {'an_str': ''  }
-            assert _.post(url='/an-post/ok-2').json() == {'an_str': 'ok'}
-
-
-    # def test__bug__auth__encrypt_decrypt_flow(self):                                                 # Test encrypt -> decrypt -> GitHub validation flow
-    #     # this bug happens when we don't use optional in
-    #
-    #     # class Schema__Encryption__Response(Type_Safe):
-    #     #     algorithm : str                                     = NCCL__ALGORITHM
-    #     #     encrypted : Optional[Safe_Str__Encrypted_Value]     = None                                   # without Optional we get the error below
-    #     #     error     : Optional[Safe_Str__Text]                = None
-    #
-    #     test_pat = 'ghp_test_pat_value_12345'
-    #
-    #     error_message = ("2 validation errors for Schema__Encryption__Response__BaseModel\nencrypted\n  "
-    #                      "Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    "
-    #                      "For further information visit https://errors.pydantic.dev/2.12/v/string_type\nerror\n  "
-    #                      "Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    "
-    #                      "For further information visit https://errors.pydantic.dev/2.12/v/string_type")
-    #     with pytest.raises(ValueError, match=re.escape(error_message)):
-    #         encrypt_response = self.client.post('/encryption/encrypt', json={ 'value'          : test_pat,
-    #                                                                           'encryption_type': 'text'})       # BUG: this should have worked with no exception
-
     def test__auth__encrypt_decrypt_flow(self):                                                 # Test encrypt -> decrypt -> GitHub validation flow
         test_pat = 'ghp_test_pat_value_12345'
         #Encrypt using the service's public key
@@ -337,3 +277,44 @@ class test_Routes__Auth__client__with_github_pat(TestCase):                     
         assert result.get('success')             is True
         assert result.get('user')['login']       is not None
         assert result.get('rate_limit')['limit'] is not None
+
+    def test__regression__fast_api__response__base_model__not_handing__none_values__in_type_safe_primitives(self):
+        from osbot_fast_api.api.Fast_API import Fast_API
+
+        class An_Response_Class(Type_Safe):
+            an_str : Safe_Str = None
+
+        class Routes__ABC(Fast_API__Routes):
+            def an_post__fails(self) -> An_Response_Class:
+                return An_Response_Class()
+
+            def an_post__ok_1(self) -> An_Response_Class:
+                return An_Response_Class(an_str='')
+
+            def an_post__ok_2(self) -> An_Response_Class:
+                return An_Response_Class(an_str='ok')
+
+            def setup_routes(self):
+                self.add_routes_post(self.an_post__fails,
+                                     self.an_post__ok_1 ,
+                                     self.an_post__ok_2 )
+
+        config  = Schema__Fast_API__Config(default_routes=False)
+        class Fast_API__Abc(Fast_API):
+            def setup_routes(self):
+                self.add_routes(Routes__ABC)
+                return self
+
+        fast_api_abc = Fast_API__Abc(config=config).setup()
+        assert fast_api_abc.routes_paths() == ['/an-post/fails',
+                                               '/an-post/ok-1',
+                                               '/an-post/ok-2']
+
+        with fast_api_abc.client() as _:
+            #error_message = "1 validation error for An_Response_Class__BaseModel\nan_str\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type"
+            # with pytest.raises(ValueError, match=re.escape(error_message)):
+            #     _.post(url='/an-post/fails')                                # BUG: should have worked
+            assert _.post(url='/an-post/fails').json() == {'an_str': None}    # FIXED
+
+            assert _.post(url='/an-post/ok-1').json() == {'an_str': ''  }
+            assert _.post(url='/an-post/ok-2').json() == {'an_str': 'ok'}

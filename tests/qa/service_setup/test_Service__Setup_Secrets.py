@@ -1,10 +1,9 @@
 import pytest
-from unittest                                                import TestCase
-
+from unittest                                                         import TestCase
 from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__List import Type_Safe__List
-from osbot_utils.utils.Env                                   import get_env
-from tests.qa.service_setup.Service__Setup_Secrets           import Service__Setup_Secrets
-from mgraph_ai_service_github.service.github.GitHub__Secrets import GitHub__Secrets
+from osbot_utils.utils.Env                                            import get_env
+from tests.qa.service_setup.Service__Setup_Secrets                    import Service__Setup_Secrets
+from mgraph_ai_service_github.service.github.GitHub__Secrets          import GitHub__Secrets
 
 from osbot_utils.utils.Dev import pprint
 
