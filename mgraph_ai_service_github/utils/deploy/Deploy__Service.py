@@ -2,7 +2,7 @@ from osbot_aws.aws.lambda_.dependencies.Lambda__Dependency                      
 from osbot_aws.aws.lambda_.schemas.Schema__Lambda__Dependency__Local_Install__Data  import Schema__Lambda__Dependency__Local_Install__Data
 from osbot_fast_api_serverless.deploy.Deploy__Serverless__Fast_API                  import Deploy__Serverless__Fast_API
 from osbot_utils.helpers.duration.decorators.capture_duration                       import capture_duration
-from mgraph_ai_service_github.config                                                import SERVICE_NAME, LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS, ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY
+from mgraph_ai_service_github.config                                                import SERVICE_NAME, LAMBDA_DEPENDENCIES__SERVICE__GITHUB, ENV_VAR__SERVICE__AUTH__PRIVATE_KEY, ENV_VAR__SERVICE__AUTH__PUBLIC_KEY
 from mgraph_ai_service_github.fast_api.lambda_handler                               import run
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management               import NaCl__Key_Management
 
@@ -30,7 +30,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
         return run
 
     def lambda_dependencies(self):
-        return LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS
+        return LAMBDA_DEPENDENCIES__SERVICE__GITHUB
 
     def lambda_name(self):
         return SERVICE_NAME
