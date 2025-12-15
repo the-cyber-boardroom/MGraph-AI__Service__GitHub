@@ -7,6 +7,7 @@ from mgraph_ai_service_github.fast_api.lambda_handler                           
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management               import NaCl__Key_Management
 
 RUNTIME_TO_ABI = {
+        "3.13": ("313", "cp313"),
         "3.12": ("312", "cp312"),
         "3.11": ("311", "cp311"),
         "3.10": ("310", "cp310"),
@@ -44,6 +45,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
                 self.lambda_dependency = _                                      # capture this object so that we can use it below
                 _.dependency__local.install = self.install                      # monkey patch this function with the method below
                 upload_results[package_name] = _.install_and_upload()           # this will call .install()
+                #upload_results[package_name] = _.install_and_upload(refresh=True)           # this will call .install()
         return upload_results
 
 
@@ -58,7 +60,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
     # todo: refactor the code fixes below to the .install() method to the OSBot_AWS project
     def install(self): # this is a method from self.lambda_dependency.dependency__local
         from osbot_utils.utils.Process import Process
-        lambda_runtime     = '3.11'
+        lambda_runtime     = '3.13'                             # configuring to run on 3.13
         lambda_flags       = self.lambda_flags(lambda_runtime)
         self               = self.lambda_dependency.dependency__local
         local_install_data = self.install__data()               # failing here, method is executed but this is lost
