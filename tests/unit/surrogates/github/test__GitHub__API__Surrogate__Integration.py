@@ -58,3 +58,90 @@ class test__GitHub__API__Surrogate__Integration(TestCase):
         # Should work through surrogate with correct permissions
         user_data = github_api.get('/user')
         assert user_data['login'] == 'surrogate-repo-write'
+
+    def test_reset(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("owner", "repo")
+        surrogate.add_secret("owner", "repo", "SECRET")
+
+        assert surrogate.state.repo_exists("owner", "repo") is True
+
+        surrogate.reset()
+
+        assert surrogate.state.repo_exists("owner", "repo") is False
+
+    def test_encrypt_for_repo(self):
+        surrogate  = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("owner", "repo")
+
+        encrypted = surrogate.encrypt_for_repo("owner", "repo", "my_secret")
+
+        assert encrypted is not None
+        assert encrypted != "my_secret"
+        assert len(encrypted) > 0
+
+    def test_encrypt_for_env(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("owner", "repo")
+        surrogate.add_environment("owner", "repo", "production")
+
+        encrypted = surrogate.encrypt_for_env("owner", "repo", "production", "my_secret")
+
+        assert encrypted is not None
+        assert encrypted != "my_secret"
+        assert len(encrypted) > 0
+
+    def test_encrypt_for_org(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_org("my-org")
+
+        encrypted = surrogate.encrypt_for_org("my-org", "my_secret")
+
+        assert encrypted is not None
+        assert encrypted != "my_secret"
+        assert len(encrypted) > 0
+
+    def test_get_repo_key_id(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("owner", "repo")
+
+        key_id = surrogate.get_repo_key_id("owner", "repo")
+
+        assert key_id is not None
+        assert len(key_id) > 0
+
+    def test_get_env_key_id(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("owner", "repo")
+        surrogate.add_environment("owner", "repo", "staging")
+
+        key_id = surrogate.get_env_key_id("owner", "repo", "staging")
+
+        assert key_id is not None
+        assert len(key_id) > 0
+
+    def test_get_org_key_id(self):
+        surrogate = GitHub__API__Surrogate().setup()
+        surrogate.add_org("my-org")
+
+        key_id = surrogate.get_org_key_id("my-org")
+
+        assert key_id is not None
+        assert len(key_id) > 0
+
+    def test_app_and_test_client(self):
+        surrogate = GitHub__API__Surrogate().setup()
+
+        assert surrogate.app()         is not None
+        assert surrogate.test_client() is not None
+
+    def test_create_session(self):
+        surrogate = GitHub__API__Surrogate().setup()
+
+        # With default (admin) PAT
+        session = surrogate.create_session()
+        assert session is not None
+
+        # With specific PAT
+        session = surrogate.create_session(surrogate.pats.repo_write_pat())
+        assert session is not None

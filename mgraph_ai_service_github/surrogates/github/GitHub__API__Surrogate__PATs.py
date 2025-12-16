@@ -23,8 +23,6 @@ class GitHub__API__Surrogate__PATs(Type_Safe):                                  
     _users : Dict[str, Schema__Surrogate__User]                                 # Users indexed by PAT
     
     def setup(self) -> 'GitHub__API__Surrogate__PATs':                          # Initialize PAT definitions
-        self._pats  = {}
-        self._users = {}
         self._setup_pats()
         return self
     
@@ -207,7 +205,11 @@ class GitHub__API__Surrogate__PATs(Type_Safe):                                  
     def can_read_repo_secrets(self, pat: str) -> bool:                          # Check if PAT can read repository secrets
         pat_info = self.get_pat_info(pat)
         return pat_info.can_read_repo_secrets() if pat_info else False
-    
+
+    def can_read_org(self, pat: str) -> bool:                                   # Check if PAT can read repository secrets
+        pat_info = self.get_pat_info(pat)
+        return pat_info.can_read_org() if pat_info else False
+
     def can_write_repo_secrets(self, pat: str) -> bool:                         # Check if PAT can write repository secrets
         pat_info = self.get_pat_info(pat)
         return pat_info.can_write_repo_secrets() if pat_info else False

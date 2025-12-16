@@ -44,3 +44,60 @@ class test__GitHub__API__Surrogate__Keys(TestCase):
         # Different scopes should have different keys
         assert repo_key.key_id != env_key.key_id
         assert env_key.key_id  != org_key.key_id
+
+    def test_reset(self):
+        keys = GitHub__API__Surrogate__Keys().setup()
+
+        # Create a key
+        keys.get_or_create_key_pair("test_scope")
+        assert keys.get_public_key("test_scope") is not None
+
+        # Reset
+        keys.reset()
+
+        # Key should be gone
+        assert keys.get_public_key("test_scope") is None
+
+    def test_validate_encrypted_value_success(self):
+        keys      = GitHub__API__Surrogate__Keys().setup()
+        scope_id  = "repo:owner/repo"
+        plaintext = "my_secret"
+
+        encrypted = keys.encrypt_secret(scope_id, plaintext)
+        is_valid  = keys.validate_encrypted_value(scope_id, encrypted)
+
+        assert is_valid is True
+
+    def test_validate_encrypted_value_failure(self):
+        keys     = GitHub__API__Surrogate__Keys().setup()
+        scope_id = "repo:owner/repo"
+
+        # Create key pair
+        keys.get_or_create_key_pair(scope_id)
+
+        # Invalid encrypted value
+        is_valid = keys.validate_encrypted_value(scope_id, "not_valid_encrypted_data")
+
+        assert is_valid is False
+
+    def test_decrypt_unknown_scope_raises(self):
+        keys = GitHub__API__Surrogate__Keys().setup()
+
+        with self.assertRaises(ValueError) as context:
+            keys.decrypt_secret("unknown_scope", "some_data")
+
+        assert "No key pair found" in str(context.exception)
+
+    def test_get_key_id(self):
+        keys     = GitHub__API__Surrogate__Keys().setup()
+        scope_id = "repo:owner/repo"
+
+        # Before creating key pair
+        assert keys.get_key_id(scope_id) is None
+
+        # After creating key pair
+        keys.get_or_create_key_pair(scope_id)
+        key_id = keys.get_key_id(scope_id)
+
+        assert key_id is not None
+        assert len(key_id) > 0

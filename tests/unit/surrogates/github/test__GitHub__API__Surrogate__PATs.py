@@ -1,6 +1,7 @@
 from unittest                                                                       import TestCase
 from osbot_utils.decorators.methods.cache_on_self                                   import cache_on_self
 from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__PATs        import GitHub__API__Surrogate__PATs
+from mgraph_ai_service_github.surrogates.github.schemas.Enum__GitHub__Scope         import Enum__GitHub__Scope
 
 
 class test__GitHub__API__Surrogate__PATs(TestCase):
@@ -67,3 +68,36 @@ class test__GitHub__API__Surrogate__PATs(TestCase):
         assert user is not None
         assert user.login == 'surrogate-admin'
         assert user.id    == 1000001
+
+    def test_has_scope(self):
+        pats = self.pats()
+
+        # Admin has REPO scope
+        assert pats.has_scope(pats.admin_pat(), Enum__GitHub__Scope.REPO)      is True
+        assert pats.has_scope(pats.admin_pat(), Enum__GitHub__Scope.ADMIN_ORG) is True
+
+        # Repo read only has PUBLIC_REPO
+        assert pats.has_scope(pats.repo_read_pat(), Enum__GitHub__Scope.PUBLIC_REPO) is True
+        assert pats.has_scope(pats.repo_read_pat(), Enum__GitHub__Scope.REPO)        is False
+
+        # Unknown PAT
+        assert pats.has_scope("unknown_pat", Enum__GitHub__Scope.REPO) is False
+
+    def test_is_known_pat(self):
+        pats = self.pats()
+
+        assert pats.is_known_pat(pats.admin_pat()) is True
+        assert pats.is_known_pat("unknown_pat")    is False
+
+    def test_can_read_org(self):
+        pats = self.pats()
+
+        # Org admin can read org
+        assert pats.can_read_org(pats.org_admin_pat()) is True
+
+        # Admin has admin:org scope
+        assert pats.can_read_org(pats.admin_pat()) is True
+
+        # Repo-only cannot read org
+        assert pats.can_read_org(pats.repo_write_pat()) is False
+
