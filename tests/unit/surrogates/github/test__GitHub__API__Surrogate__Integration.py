@@ -145,3 +145,12 @@ class test__GitHub__API__Surrogate__Integration(TestCase):
         # With specific PAT
         session = surrogate.create_session(surrogate.pats.repo_write_pat())
         assert session is not None
+
+    def test_create_secrets_default_repo_name(self):
+        # Covers line 117: repo_name is None default
+        surrogate      = GitHub__API__Surrogate().setup()
+        surrogate.add_repo("test-owner", "test-repo")
+
+        github_secrets = surrogate.create_secrets()                             # No repo_name provided
+
+        assert github_secrets.repo_name == "test-owner/test-repo"

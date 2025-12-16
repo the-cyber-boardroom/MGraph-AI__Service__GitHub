@@ -67,8 +67,6 @@ class GitHub__API__Surrogate__State(Type_Safe):                                 
         repo_data = self.repos.get(repo_key)
         if repo_data and environment not in repo_data.environments:
             repo_data.environments.append(environment)
-            if repo_key not in self.secrets__env:
-                self.secrets__env[repo_key] = {}
             if environment not in self.secrets__env[repo_key]:
                 self.secrets__env[repo_key][environment] = {}
         return self

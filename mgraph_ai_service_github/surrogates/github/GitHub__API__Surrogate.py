@@ -3,6 +3,7 @@ from fastapi                                                                    
 from starlette.testclient                                                          import TestClient
 from osbot_utils.type_safe.Type_Safe                                               import Type_Safe
 from mgraph_ai_service_github.service.github.GitHub__API                           import GitHub__API
+from mgraph_ai_service_github.service.github.GitHub__Secrets import GitHub__Secrets
 from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__State      import GitHub__API__Surrogate__State
 from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__PATs       import GitHub__API__Surrogate__PATs
 from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__Keys       import GitHub__API__Surrogate__Keys
@@ -70,35 +71,26 @@ class GitHub__API__Surrogate(Type_Safe):                                        
         github_api = GitHub__API(api_token=pat)
         return self.inject(github_api)
     
-    def inject(self, github_api: 'GitHub__API') -> 'GitHub__API':               # Replace session on existing GitHub__API instance
-        """Replace session on existing GitHub__API instance
-        
-        Args:
-            github_api: Existing instance to modify
-            
-        Returns:
-            Same instance with session replaced
-        """
+    def inject(self,                                                                        # Replace session on existing GitHub__API instance
+               github_api: GitHub__API                                                      #  Existing instance to modify
+          ) -> GitHub__API:                                                                  # Returns Same instance with session replaced
         session = self.create_session(github_api.api_token)
         
         # Get the cache manager from the @cache_on_self decorator
         # The session() method must be called first to initialize the cache
-        try:
-            github_api.session()                                                # Initialize cache if not already done
-        except Exception:
-            pass                                                                # May fail if token isn't set up for real requests
+
+        github_api.session()                                                        # Initialize cache if not already done
         
         cache_manager = github_api.session(__return__='cache_on_self')
         storage       = cache_manager.cache_storage
         key           = cache_manager.no_args_key
-        
-        # Replace the cached session with our surrogate session
-        storage.set_cached_value(github_api, key, session)
+
+        storage.set_cached_value(github_api, key, session)                          # Replace the cached session with our surrogate session
         
         return github_api
     
-    def create_secrets(self, pat: str = None, repo_name: str = None             # Create a GitHub__Secrets instance wired to this surrogate
-                       ) -> 'GitHub__Secrets':
+    def create_secrets(self, pat: str = None, repo_name: str = None                 # Create a GitHub__Secrets instance wired to this surrogate
+                       ) -> GitHub__Secrets:
         """Create a GitHub__Secrets instance wired to this surrogate
         
         Args:
@@ -108,7 +100,6 @@ class GitHub__API__Surrogate(Type_Safe):                                        
         Returns:
             GitHub__Secrets with API pointing to surrogate
         """
-        from mgraph_ai_service_github.service.github.GitHub__Secrets import GitHub__Secrets
         
         if pat is None:
             pat = self.pats.admin_pat()

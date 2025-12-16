@@ -1,6 +1,8 @@
-from unittest                                                                     import TestCase
-from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__State     import GitHub__API__Surrogate__State
-from mgraph_ai_service_github.surrogates.github.schemas.Schema__Surrogate__Public_Key import Schema__Surrogate__Public_Key
+from unittest                                                                           import TestCase
+from osbot_utils.testing.__                                                             import __
+from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__Dict                   import Type_Safe__Dict
+from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__State           import GitHub__API__Surrogate__State
+from mgraph_ai_service_github.surrogates.github.schemas.Schema__Surrogate__Public_Key   import Schema__Surrogate__Public_Key
 
 
 class test__GitHub__API__Surrogate__State(TestCase):
@@ -175,6 +177,99 @@ class test__GitHub__API__Surrogate__State(TestCase):
         assert rate_limit_2 is rate_limit
 
 
+    def test_add_environment_creates_secrets_dict(self):
+        state = GitHub__API__Surrogate__State()
+        state.add_repo("owner", "repo")
+
+        # Add environment when secrets__env[repo_key] doesn't have this env yet
+        state.add_environment("owner", "repo", "new_env")
+
+        assert state.environment_exists("owner", "repo", "new_env") is True
+        # Verify the nested dict was created
+        assert "new_env" in state.secrets__env.get("owner/repo", {})
+
+    def test_add_environment_to_nonexistent_repo(self):
+        state = GitHub__API__Surrogate__State()
+
+        # Add environment to repo that doesn't exist - should not crash
+        state.add_environment("nonexistent", "repo", "prod")
+
+        # Environment should not exist since repo doesn't exist
+        assert state.environment_exists("nonexistent", "repo", "prod") is False
+
+    def test_delete_env_secret_nonexistent(self):
+        state = GitHub__API__Surrogate__State()
+        state.add_repo("owner", "repo")
+        state.add_environment("owner", "repo", "prod")
+
+        # Delete from empty env - should return False
+        result = state.delete_env_secret("owner", "repo", "prod", "NONEXISTENT")
+        assert result is False
+
+    def test_list_org_secrets_empty(self):
+        state = GitHub__API__Surrogate__State()
+
+        # List from nonexistent org - should return empty list
+        secrets = state.list_org_secrets("nonexistent-org")
+        assert secrets == []
 
 
 
+    def test_set_env_secret_initializes_all_dicts(self):
+        state = GitHub__API__Surrogate__State()
+        state.add_repo("owner", "repo")
+        state.add_environment("owner", "repo", "staging")
+
+        # Clear secrets__env to force initialization paths
+        state.secrets__env = {}
+
+        result = state.set_env_secret("owner", "repo", "staging", "SECRET", "encrypted", "key123")
+
+        assert result is True
+        assert "owner/repo" in state.secrets__env
+        assert "staging" in state.secrets__env["owner/repo"]
+        assert "SECRET" in state.secrets__env["owner/repo"]["staging"]
+
+    def test_set_env_secret_initializes_environment_dict_only(self):
+        state = GitHub__API__Surrogate__State()
+        state.add_repo("owner", "repo")
+        state.add_environment("owner", "repo", "prod")
+
+        # Set up secrets__env with repo_key but without the target environment
+        state.secrets__env = {"owner/repo": {"other_env": {}}}
+
+        # This should only create secrets__env["owner/repo"]["prod"] = {}
+        result = state.set_env_secret("owner", "repo", "prod", "MY_SECRET", "encrypted", "key456")
+
+        assert result is True
+        assert "prod" in state.secrets__env["owner/repo"]
+        assert "MY_SECRET" in state.secrets__env["owner/repo"]["prod"]
+
+    def test_set_org_secret_initializes_org_dict(self):
+        state = GitHub__API__Surrogate__State()
+
+        # Ensure secrets__org doesn't have this org yet
+        assert "my-org" not in state.secrets__org
+
+        # This should create secrets__org["my-org"] = {}
+        result = state.set_org_secret("my-org", "ORG_TOKEN", "encrypted_value", "key789", "private")
+
+        assert result is True
+        assert "my-org" in state.secrets__org
+        assert "ORG_TOKEN" in state.secrets__org["my-org"]
+
+    def test_set_repo_secret_initializes_org_dict(self):
+        with GitHub__API__Surrogate__State() as _:
+            repo_key = _._repo_key("owner", "repo")
+
+            assert repo_key not in _.secrets__org
+
+            result = _.set_repo_secret("owner", "repo", "API_KEY", "encrypted_value", "key_123")
+
+            assert result is True
+            assert type(_.secrets__repo) is Type_Safe__Dict
+            assert _.secrets__repo.obj() == __(owner_repo=__(API_KEY=__(created_at='2024-01-15T10:30:00Z',
+                                                                        updated_at='2024-01-15T10:30:00Z',
+                                                                        encrypted_value='encrypted_value',
+                                                                        key_id='key_123',
+                                                                        name='API_KEY')))

@@ -101,3 +101,11 @@ class test__GitHub__API__Surrogate__PATs(TestCase):
         # Repo-only cannot read org
         assert pats.can_read_org(pats.repo_write_pat()) is False
 
+    def test_can_read_org_unknown_pat(self):
+        pats = self.pats()
+        # Unknown PAT should return False
+        assert pats.can_read_org("unknown_pat_12345") is False
+
+    def test_env_only_pat(self):
+        pats = self.pats()
+        assert pats.env_only_pat() == pats.PAT__ENV_ONLY

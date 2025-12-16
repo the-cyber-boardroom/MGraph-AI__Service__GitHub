@@ -321,3 +321,291 @@ class test__GitHub__API__Surrogate__Routes(TestCase):
         response = self.client().delete("/orgs/test-org/actions/secrets/ORG_SECRET",
                                         headers={"Authorization": f"token {pats.repo_write_pat()}"})
         assert response.status_code == 403
+
+
+
+    def test_env_public_key_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/nonexistent/repo/environments/prod/secrets/public-key",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_env_public_key_env_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/nonexistent/secrets/public-key",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_create_env_secret_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/repos/nonexistent/repo/environments/prod/secrets/SECRET",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_create_env_secret_env_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/repos/test-org/test-repo/environments/nonexistent/secrets/SECRET",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_delete_env_secret_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/repos/nonexistent/repo/environments/prod/secrets/SECRET",
+                                        headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_delete_env_secret_env_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/repos/test-org/test-repo/environments/nonexistent/secrets/SECRET",
+                                        headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_get_env_secret_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/nonexistent/repo/environments/prod/secrets/SECRET",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_get_env_secret_env_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/nonexistent/secrets/SECRET",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_list_env_secrets_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/nonexistent/repo/environments/prod/secrets",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_create_org_secret_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/orgs/nonexistent-org/actions/secrets/SECRET",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.org_admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_delete_org_secret_org_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/orgs/nonexistent-org/actions/secrets/SECRET",
+                                        headers={"Authorization": f"token {pats.org_admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_get_org_secret_org_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/orgs/nonexistent-org/actions/secrets/SECRET",
+                                     headers={"Authorization": f"token {pats.org_admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_get_org_secret_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/orgs/test-org/actions/secrets/NONEXISTENT",
+                                     headers={"Authorization": f"token {pats.org_admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_get_env_secret_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets/NONEXISTENT",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_repo_public_key_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/nonexistent/repo/actions/secrets/public-key",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_create_repo_secret_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/repos/nonexistent/repo/actions/secrets/SECRET",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_delete_repo_secret_repo_not_found(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/repos/nonexistent/repo/actions/secrets/SECRET",
+                                        headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
+
+    def test_no_auth_on_various_endpoints(self):
+        # Test no auth returns 401 on various endpoints
+        endpoints = [
+            ("GET", "/rate_limit"),
+            ("GET", "/repos/test-org/test-repo/actions/secrets/public-key"),
+            ("GET", "/repos/test-org/test-repo/actions/secrets"),
+            ("GET", "/repos/test-org/test-repo/actions/secrets/SECRET"),
+            ("GET", "/repos/test-org/test-repo/environments/production/secrets/public-key"),
+            ("GET", "/repos/test-org/test-repo/environments/production/secrets"),
+            ("GET", "/orgs/test-org/actions/secrets/public-key"),
+            ("GET", "/orgs/test-org/actions/secrets"),
+        ]
+
+        for method, path in endpoints:
+            if method == "GET":
+                response = self.client().get(path)
+            assert response.status_code == 401, f"Expected 401 for {method} {path}"
+
+
+
+    def test_bearer_token_format(self):
+        pats     = self.surrogate().pats
+        # Test with Bearer format instead of token format
+        response = self.client().get("/user", headers={"Authorization": f"Bearer {pats.admin_pat()}"})
+        assert response.status_code == 200
+        assert response.json()["login"] == "surrogate-admin"
+
+    def test_raw_token_format(self):
+        pats = self.surrogate().pats
+        # Test with raw token (no prefix)
+        response = self.client().get("/user", headers={"Authorization": pats.admin_pat()})
+        assert response.status_code == 200
+        assert response.json()["login"] == "surrogate-admin"
+
+    def test_get_repo_public_key_no_auth(self):
+        response = self.client().get("/repos/test-org/test-repo/actions/secrets/public-key")
+        assert response.status_code == 401
+
+    def test_get_repo_public_key_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/actions/secrets/public-key",
+                                     headers={"Authorization": f"token {pats.no_scopes_pat()}"})
+        assert response.status_code == 403
+
+    def test_get_repo_secret_no_auth(self):
+        response = self.client().get("/repos/test-org/test-repo/actions/secrets/EXISTING_SECRET")
+        assert response.status_code == 401
+
+    def test_get_repo_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/actions/secrets/EXISTING_SECRET",
+                                     headers={"Authorization": f"token {pats.no_scopes_pat()}"})
+        assert response.status_code == 403
+
+    def test_put_repo_secret_no_auth(self):
+        response = self.client().put("/repos/test-org/test-repo/actions/secrets/NEW",
+                                     json={"encrypted_value": "test", "key_id": "123"})
+        assert response.status_code == 401
+
+    def test_delete_repo_secret_no_auth(self):
+        response = self.client().delete("/repos/test-org/test-repo/actions/secrets/EXISTING_SECRET")
+        assert response.status_code == 401
+
+    def test_delete_repo_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/repos/test-org/test-repo/actions/secrets/EXISTING_SECRET",
+                                        headers={"Authorization": f"token {pats.repo_read_pat()}"})
+        assert response.status_code == 403
+
+    def test_get_env_public_key_no_auth(self):
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets/public-key")
+        assert response.status_code == 401
+
+    def test_get_env_public_key_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets/public-key",
+                                     headers={"Authorization": f"token {pats.no_scopes_pat()}"})
+        assert response.status_code == 403
+
+    def test_list_env_secrets_no_auth(self):
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets")
+        assert response.status_code == 401
+
+    def test_list_env_secrets_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets",
+                                     headers={"Authorization": f"token {pats.no_scopes_pat()}"})
+        assert response.status_code == 403
+
+    def test_get_env_secret_no_auth(self):
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets/ENV_SECRET")
+        assert response.status_code == 401
+
+    def test_get_env_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/test-org/test-repo/environments/production/secrets/ENV_SECRET",
+                                     headers={"Authorization": f"token {pats.no_scopes_pat()}"})
+        assert response.status_code == 403
+
+    def test_put_env_secret_no_auth(self):
+        response = self.client().put("/repos/test-org/test-repo/environments/production/secrets/NEW",
+                                     json={"encrypted_value": "test", "key_id": "123"})
+        assert response.status_code == 401
+
+    def test_put_env_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/repos/test-org/test-repo/environments/production/secrets/NEW",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.repo_read_pat()}"})
+        assert response.status_code == 403
+
+    def test_delete_env_secret_no_auth(self):
+        response = self.client().delete("/repos/test-org/test-repo/environments/production/secrets/ENV_SECRET")
+        assert response.status_code == 401
+
+    def test_delete_env_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/repos/test-org/test-repo/environments/production/secrets/ENV_SECRET",
+                                        headers={"Authorization": f"token {pats.repo_read_pat()}"})
+        assert response.status_code == 403
+
+    def test_list_org_secrets_no_auth(self):
+        response = self.client().get("/orgs/test-org/actions/secrets")
+        assert response.status_code == 401
+
+    def test_org_public_key_no_auth(self):
+        response = self.client().get("/orgs/test-org/actions/secrets/public-key")
+        assert response.status_code == 401
+
+    def test_get_org_secret_no_auth(self):
+        response = self.client().get("/orgs/test-org/actions/secrets/ORG_SECRET")
+        assert response.status_code == 401
+
+    def test_get_org_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().get("/orgs/test-org/actions/secrets/ORG_SECRET",
+                                     headers={"Authorization": f"token {pats.repo_write_pat()}"})
+        assert response.status_code == 403
+
+    def test_put_org_secret_no_auth(self):
+        response = self.client().put("/orgs/test-org/actions/secrets/NEW",
+                                     json={"encrypted_value": "test", "key_id": "123"})
+        assert response.status_code == 401
+
+    def test_put_org_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().put("/orgs/test-org/actions/secrets/NEW",
+                                     json={"encrypted_value": "test", "key_id": "123"},
+                                     headers={"Authorization": f"token {pats.repo_write_pat()}"})
+        assert response.status_code == 403
+
+    def test_delete_org_secret_no_auth(self):
+        response = self.client().delete("/orgs/test-org/actions/secrets/ORG_SECRET")
+        assert response.status_code == 401
+
+    def test_delete_org_secret_permission_denied(self):
+        pats     = self.surrogate().pats
+        response = self.client().delete("/orgs/test-org/actions/secrets/ORG_SECRET",
+                                        headers={"Authorization": f"token {pats.repo_write_pat()}"})
+        assert response.status_code == 403
+
+
+    def test_get_user_pat_without_user_mapping(self):
+        # Line 80: PAT is valid but has no user associated
+        surrogate = self.surrogate()
+
+        # Add a PAT that's "known" but remove its user mapping
+        test_pat = surrogate.pats.admin_pat()
+        del surrogate.pats._users[test_pat]  # Remove user mapping
+
+        response = self.client().get("/user", headers={"Authorization": f"token {test_pat}"})
+        assert response.status_code == 401
+
+    def test_get_repo_secret_repo_not_found(self):
+        # Line 148: Repo doesn't exist
+        pats     = self.surrogate().pats
+        response = self.client().get("/repos/nonexistent/repo/actions/secrets/SOME_SECRET",
+                                     headers={"Authorization": f"token {pats.admin_pat()}"})
+        assert response.status_code == 404
