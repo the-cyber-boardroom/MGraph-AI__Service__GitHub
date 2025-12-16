@@ -9,8 +9,13 @@ from mgraph_ai_service_github.surrogates.github.GitHub__API__Surrogate__Session 
 
 class test__GitHub__API__Surrogate__Session(TestCase):
 
-    @cache_on_self
-    def sample_client(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.sample_client = cls.create__sample_client()
+        cls.session       = GitHub__API__Surrogate__Session(test_client=cls.sample_client)
+
+    @classmethod
+    def create__sample_client(cls):
         class Routes__Sample(Fast_API__Routes):
 
             def user(self):
@@ -48,54 +53,49 @@ class test__GitHub__API__Surrogate__Session(TestCase):
         sample_fast_api = Sample__Fast_API().setup()
         return sample_fast_api.client()
 
-    @cache_on_self
-    def session(self):
-        session = GitHub__API__Surrogate__Session(test_client=self.sample_client())
-        return session
-
     def test_setup(self):
-        assert self.session()._headers == {}
+        assert self.session._headers == {}
 
     def test_headers_property(self):
-        proxy = self.session().headers
+        proxy = self.session.headers
         assert isinstance(proxy, HeadersProxy)
 
     def test_get(self):
-        response = self.session().get("/user")
+        response = self.session.get("/user")
 
         assert response.status_code == 200
         assert response.json()['login'] == 'test-user'
 
     def test_put(self):
-        response = self.session().put("/repos/owner/repo/secrets/SECRET_NAME", json={"value": "test"})
+        response = self.session.put("/repos/owner/repo/secrets/SECRET_NAME", json={"value": "test"})
 
         assert response.status_code == 201
 
     def test_delete(self):
-        response = self.session().delete("/repos/owner/repo/secrets/SECRET_NAME")
+        response = self.session.delete("/repos/owner/repo/secrets/SECRET_NAME")
 
         assert response.status_code == 204
 
     def test_post(self):
-        response = self.session().post("/data", json={"key": "value"})
+        response = self.session.post("/data", json={"key": "value"})
 
         assert response.status_code == 200
         assert response.json()['created'] is True
 
     def test_convert_url_to_path_full_url(self):
-        path = self.session()._convert_url_to_path("https://api.github.com/user")
+        path = self.session._convert_url_to_path("https://api.github.com/user")
         assert path == "/user"
 
     def test_convert_url_to_path_already_path(self):
-        path = self.session()._convert_url_to_path("/user")
+        path = self.session._convert_url_to_path("/user")
         assert path == "/user"
 
     def test_convert_url_to_path_other_url(self):
-        path = self.session()._convert_url_to_path("https://other.com/some/path")
+        path = self.session._convert_url_to_path("https://other.com/some/path")
         assert path == "/some/path"
 
     def test_headers_merged_in_request(self):
-        session = GitHub__API__Surrogate__Session(test_client=self.sample_client())
+        session = GitHub__API__Surrogate__Session(test_client=self.sample_client)
 
         # Set session-level header
         session.headers.update({'Authorization': 'token session_token'})
@@ -107,7 +107,7 @@ class test__GitHub__API__Surrogate__Session(TestCase):
         assert response.status_code == 200
 
     def test_request_headers_override_session_headers(self):
-        session = GitHub__API__Surrogate__Session(test_client=self.sample_client())
+        session = GitHub__API__Surrogate__Session(test_client=self.sample_client)
 
         # Set session header
         session.headers.update({'X-Test': 'session_value'})
@@ -117,17 +117,17 @@ class test__GitHub__API__Surrogate__Session(TestCase):
         assert response.status_code == 200
 
     def test_prepare_headers_empty(self):
-        headers = self.session()._prepare_headers({})
+        headers = self.session._prepare_headers({})
         assert headers == {}
 
     def test_prepare_headers_with_session_headers(self):
-        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client())
+        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client)
         session._headers = {'Authorization': 'token abc'}
         headers          = session._prepare_headers({})
         assert headers  == {'Authorization': 'token abc'}
 
     def test_prepare_headers_with_request_headers(self):
-        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client())
+        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client)
         session._headers = {'Session-Header': 'session_value'}
         headers          = session._prepare_headers({'headers': {'Request-Header': 'request_value'}})
 
@@ -135,7 +135,7 @@ class test__GitHub__API__Surrogate__Session(TestCase):
         assert headers['Request-Header'] == 'request_value'
 
     def test_prepare_headers_request_overrides_session(self):
-        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client())
+        session          = GitHub__API__Surrogate__Session(test_client=self.sample_client)
         session._headers = {'X-Header': 'session_value'}
         headers          = session._prepare_headers({'headers': {'X-Header': 'request_value'}})
 
