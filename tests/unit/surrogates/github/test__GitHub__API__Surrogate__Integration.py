@@ -6,15 +6,16 @@ from mgraph_ai_service_github.service.github.GitHub__API                        
 
 class test__GitHub__API__Surrogate__Integration(TestCase):
 
-    @cache_on_self
-    def surrogate(self):
-        return (GitHub__API__Surrogate()
+    @classmethod
+    def setUpClass(cls):
+        cls.surrogate = (GitHub__API__Surrogate()
                 .setup()
                 .add_repo("test-org", "test-repo")
                 .add_secret("test-org", "test-repo", "EXISTING_KEY"))
+     
 
     def test_create_api(self):
-        github_api = self.surrogate().create_api()
+        github_api = self.surrogate.create_api()
 
         # Should work through surrogate
         user_data = github_api.get('/user')
@@ -24,7 +25,7 @@ class test__GitHub__API__Surrogate__Integration(TestCase):
         assert rate_limit['rate']['limit'] == 5000
 
     def test_create_secrets(self):
-        github_secrets = self.surrogate().create_secrets(repo_name="test-org/test-repo")
+        github_secrets = self.surrogate.create_secrets(repo_name="test-org/test-repo")
 
         # List secrets
         secrets = github_secrets.list_secrets()
@@ -49,11 +50,11 @@ class test__GitHub__API__Surrogate__Integration(TestCase):
         assert result is True
 
     def test_inject_existing_api(self):
-        pats       = self.surrogate().pats
+        pats       = self.surrogate.pats
         github_api = GitHub__API(api_token=pats.repo_write_pat())
 
         # Inject surrogate
-        self.surrogate().inject(github_api)
+        self.surrogate.inject(github_api)
 
         # Should work through surrogate with correct permissions
         user_data = github_api.get('/user')

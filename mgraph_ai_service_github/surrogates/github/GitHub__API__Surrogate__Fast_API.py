@@ -6,7 +6,7 @@ from mgraph_ai_service_github.surrogates.github.routes.Routes__GitHub__User     
 from mgraph_ai_service_github.surrogates.github.routes.Routes__GitHub__Repo_Secrets        import Routes__GitHub__Repo_Secrets
 from mgraph_ai_service_github.surrogates.github.routes.Routes__GitHub__Env_Secrets         import Routes__GitHub__Env_Secrets
 from mgraph_ai_service_github.surrogates.github.routes.Routes__GitHub__Org_Secrets         import Routes__GitHub__Org_Secrets
-from mgraph_ai_service_github.utils.Version import version__mgraph_ai_service_github
+from mgraph_ai_service_github.utils.Version                                                import version__mgraph_ai_service_github
 
 
 class GitHub__API__Surrogate__Fast_API(Fast_API):                               # FastAPI application for GitHub API surrogate
@@ -17,10 +17,11 @@ class GitHub__API__Surrogate__Fast_API(Fast_API):                               
 
     def setup(self):                                                                        # Configure FastAPI application settings
         with self.config as _:
-            _.title   = 'GitHub API Surrogate'
+            _.name    = 'GitHub API Surrogate'
             _.version = version__mgraph_ai_service_github
 
         return super().setup()
+
     def add_routes_with_deps(self, routes_class):                               # Add routes with injected dependencies
         routes = routes_class(app   = self.app() ,
                               state = self.state ,
