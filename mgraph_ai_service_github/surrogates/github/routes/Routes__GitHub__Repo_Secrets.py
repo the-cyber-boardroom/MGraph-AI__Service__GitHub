@@ -75,12 +75,11 @@ class Routes__GitHub__Repo_Secrets(Routes__GitHub__Base):                       
 
     @route_path('/repos/{owner}/{repo}/actions/secrets/{secret_name}')
     def put_repo_secret(self, owner         : str              ,          # PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}
-                             repo           : str              ,
-                             secret_name    : str              ,
-                             body           : dict ,
-                             authorization : str = Header(None),
-
-                              ) -> JSONResponse:
+                              repo          : str              ,
+                              secret_name   : str              ,
+                              body          : dict ,
+                              authorization : str = Header(None),
+                         ) -> JSONResponse:
 
         valid, error_response, pat = self.auth_error_response(authorization)
         if not valid:
