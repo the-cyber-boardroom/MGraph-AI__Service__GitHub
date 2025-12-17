@@ -12,14 +12,27 @@ from osbot_utils.utils.Env                                                  impo
 from starlette.testclient                                                   import TestClient
 from mgraph_ai_service_github.config                                        import ENV_VAR__SERVICE__AUTH__PUBLIC_KEY, ENV_VAR__SERVICE__AUTH__PRIVATE_KEY
 from mgraph_ai_service_github.fast_api.GitHub__Service__Fast_API            import GitHub__Service__Fast_API
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 from mgraph_ai_service_github.utils.Version                                 import version__mgraph_ai_service_github
 from tests.unit.GitHub__Service__Fast_API__Test_Objs                        import setup__github_service_fast_api_test_objs, TEST_API_KEY__NAME, TEST_API_KEY__VALUE, GitHub__Service__Fast_API__Test_Objs
 
 
 class test_Routes__Auth__client(TestCase):
 
+    # @classmethod
+    # def setUpClass(cls):
+    #     with setup__github_service_fast_api_test_objs() as _:
+    #         cls.test_objs      = _
+    #         cls.github_service = _.fast_api
+    #         cls.client         = _.fast_api__client
+    #         cls.nacl_keys      = _.nacl_keys
+    #         cls.client.headers[TEST_API_KEY__NAME] = TEST_API_KEY__VALUE
+
     @classmethod
     def setUpClass(cls):
+        # Setup surrogate
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()
+
         with setup__github_service_fast_api_test_objs() as _:
             cls.test_objs      = _
             cls.github_service = _.fast_api
@@ -27,6 +40,9 @@ class test_Routes__Auth__client(TestCase):
             cls.nacl_keys      = _.nacl_keys
             cls.client.headers[TEST_API_KEY__NAME] = TEST_API_KEY__VALUE
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.surrogate_context.teardown()
     # ═══════════════════════════════════════════════════════════════════════════════
     # Setup Verification Tests
     # ═══════════════════════════════════════════════════════════════════════════════
@@ -204,117 +220,3 @@ class test_Routes__Auth__client(TestCase):
         result = response.json()
         assert result.get('status')  == 'error'
         assert 'API key'             in result.get('message', '')
-
-
-class test_Routes__Auth__client__with_github_pat(TestCase):                                     # Tests requiring real GitHub PAT
-
-    @classmethod
-    def setUpClass(cls):
-        load_dotenv()
-        cls.github_pat = get_env('GIT_HUB__ACCESS_TOKEN', '')
-        if not cls.github_pat:
-            return                                                                              # Skip setup if no PAT
-
-        with setup__github_service_fast_api_test_objs() as _:
-            cls.test_objs = _
-            cls.client    = _.fast_api__client
-            cls.nacl_keys = _.nacl_keys
-            cls.client.headers[TEST_API_KEY__NAME] = TEST_API_KEY__VALUE
-
-    def setUp(self):
-        if not self.github_pat:
-            self.skipTest("GIT_HUB__ACCESS_TOKEN not set")
-
-    # ═══════════════════════════════════════════════════════════════════════════════
-    # Full Flow Tests with Real GitHub PAT
-    # ═══════════════════════════════════════════════════════════════════════════════
-
-    def test__auth_token_create__success(self):                                                 # Test POST /auth/token-create with real PAT
-        response = self.client.post('/auth/token-create', headers={'X-GitHub-PAT': self.github_pat})
-        result   = response.json()
-
-        assert response.status_code        == 200
-        assert result.get('success')       is True
-        assert result.get('encrypted_pat') is not None
-        assert result.get('user')          is not None
-        assert result.get('user')['login'] is not None
-        assert result.get('user')['id']    is not None
-        assert result.get('instructions')  is not None
-
-        self.__class__.encrypted_pat = result.get('encrypted_pat')
-
-    def test__auth_token_validate__success(self):                                               # Test POST /auth/token-validate with real encrypted PAT
-        if not hasattr(self.__class__, 'encrypted_pat'):
-            create_response = self.client.post('/auth/token-create', headers={'X-GitHub-PAT': self.github_pat})
-            create_result   = create_response.json()
-            if not create_result.get('success'):
-                self.skipTest(f"token-create failed: {create_result.get('error')}")
-            self.__class__.encrypted_pat = create_result.get('encrypted_pat')
-
-        response = self.client.post('/auth/token-validate', headers={'X-OSBot-GitHub-PAT': self.encrypted_pat})
-        result   = response.json()
-
-        assert response.status_code                  == 200
-        assert result.get('success')                 is True
-        assert result.get('user')                    is not None
-        assert result.get('user')['login']           is not None
-        assert result.get('rate_limit')              is not None
-        assert result.get('rate_limit')['limit']     is not None
-        assert result.get('rate_limit')['remaining'] is not None
-
-    def test__auth_test__success(self):                                                         # Test GET /auth/test with real encrypted PAT
-        if not hasattr(self.__class__, 'encrypted_pat'):
-            create_response = self.client.post('/auth/token-create', headers={'X-GitHub-PAT': self.github_pat})
-            create_result   = create_response.json()
-            if not create_result.get('success'):
-                self.skipTest(f"token-create failed: {create_result.get('error')}")
-            self.__class__.encrypted_pat = create_result.get('encrypted_pat')
-
-        response = self.client.get('/auth/test', headers={'X-OSBot-GitHub-PAT': self.encrypted_pat})
-        result   = response.json()
-
-        assert response.status_code              == 200
-        assert result.get('success')             is True
-        assert result.get('user')['login']       is not None
-        assert result.get('rate_limit')['limit'] is not None
-
-    def test__regression__fast_api__response__base_model__not_handing__none_values__in_type_safe_primitives(self):
-        from osbot_fast_api.api.Fast_API import Fast_API
-
-        class An_Response_Class(Type_Safe):
-            an_str : Safe_Str = None
-
-        class Routes__ABC(Fast_API__Routes):
-            def an_post__fails(self) -> An_Response_Class:
-                return An_Response_Class()
-
-            def an_post__ok_1(self) -> An_Response_Class:
-                return An_Response_Class(an_str='')
-
-            def an_post__ok_2(self) -> An_Response_Class:
-                return An_Response_Class(an_str='ok')
-
-            def setup_routes(self):
-                self.add_routes_post(self.an_post__fails,
-                                     self.an_post__ok_1 ,
-                                     self.an_post__ok_2 )
-
-        config  = Schema__Fast_API__Config(default_routes=False)
-        class Fast_API__Abc(Fast_API):
-            def setup_routes(self):
-                self.add_routes(Routes__ABC)
-                return self
-
-        fast_api_abc = Fast_API__Abc(config=config).setup()
-        assert fast_api_abc.routes_paths() == ['/an-post/fails',
-                                               '/an-post/ok-1',
-                                               '/an-post/ok-2']
-
-        with fast_api_abc.client() as _:
-            #error_message = "1 validation error for An_Response_Class__BaseModel\nan_str\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type"
-            # with pytest.raises(ValueError, match=re.escape(error_message)):
-            #     _.post(url='/an-post/fails')                                # BUG: should have worked
-            assert _.post(url='/an-post/fails').json() == {'an_str': None}    # FIXED
-
-            assert _.post(url='/an-post/ok-1').json() == {'an_str': ''  }
-            assert _.post(url='/an-post/ok-2').json() == {'an_str': 'ok'}

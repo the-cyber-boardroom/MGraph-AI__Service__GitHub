@@ -6,6 +6,7 @@ from osbot_utils.utils.Env                                   import get_env, loa
 from osbot_utils.utils.Misc                                  import random_string
 from mgraph_ai_service_github.service.github.GitHub__API     import GitHub__API
 from mgraph_ai_service_github.service.github.GitHub__Secrets import GitHub__Secrets
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 
 DEFAULT_GITHUB__REPO_OWNER = 'the-cyber-boardroom'
 DEFAULT_GITHUB__REPO_NAME  = 'MGraph-AI__Service__GitHub'
@@ -13,14 +14,27 @@ DEFAULT_GITHUB__REPO_NAME  = 'MGraph-AI__Service__GitHub'
 
 class test_GitHub__Secrets(TestCase):
 
+    # @classmethod
+    # def setUpClass(cls):                                                                        # Setup test configuration
+    #     #skip__if_not__in_github_actions()
+    #     load_dotenv()
+    #     cls.test_repo_owner = get_env('GITHUB_TEST_REPO_OWNER', DEFAULT_GITHUB__REPO_OWNER)
+    #     cls.test_repo_name  = get_env('GITHUB_TEST_REPO_NAME' , DEFAULT_GITHUB__REPO_NAME)
+    #     cls.test_repo       = f'{cls.test_repo_owner}/{cls.test_repo_name}'
+    #     cls.api_token       = get_env('GIT_HUB__ACCESS_TOKEN')
+
     @classmethod
-    def setUpClass(cls):                                                                        # Setup test configuration
-        skip__if_not__in_github_actions()
-        load_dotenv()
-        cls.test_repo_owner = get_env('GITHUB_TEST_REPO_OWNER', DEFAULT_GITHUB__REPO_OWNER)
-        cls.test_repo_name  = get_env('GITHUB_TEST_REPO_NAME' , DEFAULT_GITHUB__REPO_NAME)
-        cls.test_repo       = f'{cls.test_repo_owner}/{cls.test_repo_name}'
-        cls.api_token       = get_env('GIT_HUB__ACCESS_TOKEN')
+    def setUpClass(cls):
+        cls.test_repo_owner   = 'test-owner'                                          # Use fixed test values
+        cls.test_repo_name    = 'test-repo'
+        cls.test_repo         = f'{cls.test_repo_owner}/{cls.test_repo_name}'
+
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()      # Setup surrogate
+        cls.api_token         = cls.surrogate_context.admin_pat()
+
+        cls.surrogate_context.add_repo(cls.test_repo_owner, cls.test_repo_name)     # Add test repo to surrogate state
+        cls.surrogate_context.add_environment(cls.test_repo_owner, cls.test_repo_name, 'production')
+
 
     def setUp(self):                                                              # Initialize test fixtures
         self.github_secrets = GitHub__Secrets(repo_name = self.test_repo ,
@@ -197,11 +211,11 @@ class test_GitHub__Secrets(TestCase):
         for secret_name in secrets.keys():
             assert self.github_secrets.secret_exists(secret_name) is True
 
-    @pytest.mark.skip("this works but the replace_all=True has the side effect of removing the secrets (which we need at the moment to stay there)")
+
     def test_configure_secrets__replace_all(self):                              # Test replace_all functionality
         # Create initial secrets
         initial_secrets = { f'{self.test_secret_prefix}KEEP'   : 'keep_value'   ,
-                           f'{self.test_secret_prefix}DELETE' : 'delete_value' }
+                            f'{self.test_secret_prefix}DELETE' : 'delete_value' }
 
         self.github_secrets.configure_secrets(initial_secrets)
 
@@ -312,6 +326,7 @@ class test_GitHub__Secrets(TestCase):
     #             raise
 
     def test_list_environment_secrets(self):                                    # Test listing environment secrets
+
         environment = 'production'  # Common environment name
 
         try:

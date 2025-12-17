@@ -1,14 +1,10 @@
-import pytest
 from unittest                                                                               import TestCase
 from fastapi                                                                                import Response
 from osbot_fast_api.api.routes.Fast_API__Routes                                             import Fast_API__Routes
-from osbot_fast_api_serverless.utils.testing.skip_tests import skip__if_not__in_github_actions
 from osbot_utils.helpers.duration.decorators.print_duration                                 import print_duration
 from osbot_utils.testing.__                                                                 import __, __SKIP__
 from osbot_utils.type_safe.Type_Safe                                                        import Type_Safe
-from osbot_utils.utils.Env                                                                  import get_env, load_dotenv
 from osbot_utils.utils.Objects                                                              import base_classes
-from mgraph_ai_service_github.config                                                        import ENV_VAR__GIT_HUB__ACCESS_TOKEN, ENV_VAR__TESTS__GITHUB__REPO_OWNER, ENV_VAR__TESTS__GITHUB__REPO_NAME
 from mgraph_ai_service_github.fast_api.dependencies.GitHub__API__From__Header               import GitHub__API__From__Header
 from mgraph_ai_service_github.fast_api.routes.Routes__GitHub__Secrets__Org                  import Routes__GitHub__Secrets__Org, TAG__ROUTES_GITHUB_SECRETS_ORG, ROUTES_PATHS__GITHUB_SECRETS_ORG
 from mgraph_ai_service_github.schemas.base.Enum__HTTP__Status                               import Enum__HTTP__Status
@@ -34,14 +30,15 @@ from mgraph_ai_service_github.schemas.github.secrets.Schema__GitHub__Response__O
 from mgraph_ai_service_github.service.auth.Service__Auth                                    import Service__Auth
 from mgraph_ai_service_github.service.encryption.Service__Encryption                        import Service__Encryption
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                       import NaCl__Key_Management
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 from mgraph_ai_service_github.utils.testing.Create_GitHub_Test_Data                         import Create_GitHub_Test_Data, TESTING__ORG__SECRETS__NAMES
 
 
 class test_Routes__GitHub__Secrets__Org(TestCase):
 
     @classmethod
-    def setUpClass(cls):                                                                        # Setup test configuration
-        skip__if_not__in_github_actions()
+    def setUpClass(cls):
+        # Setup NaCl keys for encryption
         cls.nacl_manager       = NaCl__Key_Management()
         cls.test_keys          = cls.nacl_manager.generate_nacl_keys()
         cls.service_auth       = Service__Auth               (private_key_hex = cls.test_keys.private_key ,
@@ -52,24 +49,29 @@ class test_Routes__GitHub__Secrets__Org(TestCase):
         cls.routes             = Routes__GitHub__Secrets__Org(github_api_factory = cls.github_api_factory ,
                                                               service_encryption = cls.service_encryption )
 
-        load_dotenv()
-        cls.github_pat = get_env(ENV_VAR__GIT_HUB__ACCESS_TOKEN     )
-        cls.repo_owner = get_env(ENV_VAR__TESTS__GITHUB__REPO_OWNER)                            # Used as org name
-        cls.repo_name  = get_env(ENV_VAR__TESTS__GITHUB__REPO_NAME )
-        if not cls.github_pat or not cls.repo_owner or not cls.repo_name:
-            pytest.skip('Skipping tests because GitHub Access Token or target repo are not available')
+        # Setup surrogate
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()
 
+        # Use fixed test values
+        cls.repo_owner = 'test-org'                                                             # Used as org name
+        cls.repo_name  = 'test-repo'
+
+        # Add test data to surrogate
+        cls.surrogate_context.add_org(cls.repo_owner)
+
+        for secret_name in TESTING__ORG__SECRETS__NAMES:
+            cls.surrogate_context.add_org_secret(cls.repo_owner, secret_name)
+
+        # Use surrogate PAT (org admin PAT for org operations)
+        cls.github_pat      = cls.surrogate_context.org_admin_pat()
         cls.encrypt_request = Schema__Encryption__Request(value           = cls.github_pat            ,
                                                           encryption_type = Enum__Encryption_Type.TEXT)
         cls.encrypted_pat   = cls.service_encryption.encrypt(cls.encrypt_request).encrypted
 
-        cls.create_test_data = Create_GitHub_Test_Data()
-        # if cls.create_test_data.setup__env_vars_defined_ok() is False:
-        #     pytest.skip("Skipping test because env vars not defined")
-        # if cls.create_test_data.has_org_admin_access() is False:
-        #     pytest.skip("Skipping org secrets tests - no org admin access")
-        # if cls.create_test_data.create_org_secrets() is False:
-        #     pytest.skip("Skipping test because org secrets could not be created")
+    @classmethod
+    def tearDownClass(cls):
+        cls.surrogate_context.teardown()
+
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # Initialization Tests
@@ -200,22 +202,20 @@ class test_Routes__GitHub__Secrets__Org(TestCase):
             assert result.response_context.status_code == Enum__HTTP__Status.CREATED_201
             assert result.response_data.created        is True
 
-        # Verify secret was created
-        with self.create_test_data.github_secrets() as _:
-            secret = _.get_org_secret(self.repo_owner, secret_name)
-            assert secret is not None
-            assert secret.get('name')       == secret_name
-            assert secret.get('visibility') == 'private'
+        # Verify secret was created (via surrogate state)
+        state  = self.surrogate_context.surrogate.state
+        secret = state.get_org_secret(self.repo_owner, secret_name)
+        assert secret is not None
+        assert secret.name       == secret_name
+        assert secret.visibility == 'private'
 
-        # Cleanup: delete the created secret
-        with self.create_test_data.github_secrets() as _:
-            deleted = _.delete_org_secret(self.repo_owner, secret_name)
-            assert deleted is True
+        # Cleanup: delete the created secret (via surrogate state)
+        deleted = state.delete_org_secret(self.repo_owner, secret_name)
+        assert deleted is True
 
         # Verify secret was deleted
-        with self.create_test_data.github_secrets() as _:
-            secret = _.get_org_secret(self.repo_owner, secret_name)
-            assert secret is None
+        secret = state.get_org_secret(self.repo_owner, secret_name)
+        assert secret is None
 
     def test__create__with_visibility_all(self):                                                # Test create org secret with visibility='all'
         secret_name     = 'TEST_ORG_VIS_ALL_TEMP'
@@ -237,9 +237,9 @@ class test_Routes__GitHub__Secrets__Org(TestCase):
             assert result.response_context.success     is True
             assert result.response_context.status_code == Enum__HTTP__Status.CREATED_201
 
-        # Cleanup
-        with self.create_test_data.github_secrets() as _:
-            assert _.delete_org_secret(self.repo_owner, secret_name) is True
+        # Cleanup (via surrogate state)
+        state = self.surrogate_context.surrogate.state
+        assert state.delete_org_secret(self.repo_owner, secret_name) is True
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # update Tests
