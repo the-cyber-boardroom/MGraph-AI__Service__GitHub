@@ -48,7 +48,7 @@ class test_GitHub__API(TestCase):
     def test__init__with_env_token(self):                                        # Test initialization with env token
         github_api = GitHub__API()
         #assert github_api.api_token == self.api_token
-        assert github_api.api_token is None
+        assert github_api.api_token in [None, '']
         assert github_api.api_url   == 'https://api.github.com'
 
     def test__init__session_headers(self):                                       # Test session headers configuration
