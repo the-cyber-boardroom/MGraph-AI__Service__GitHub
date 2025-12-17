@@ -86,13 +86,13 @@ class Routes__GitHub__Env_Secrets(Routes__GitHub__Base):                        
         return secret.to_github_response()
 
     @route_path('/repos/{owner}/{repo}/environments/{environment}/secrets/{secret_name}')
-    async def put_env_secret(self, owner         : str              ,           # PUT /repos/{owner}/{repo}/environments/{environment}/secrets/{secret_name}
-                                   repo          : str              ,
-                                   environment   : str              ,
-                                   secret_name   : str              ,
-                                   request       : Request          ,
-                                   authorization : str = Header(None)
-                             ) -> JSONResponse:
+    def put_env_secret(self, owner         : str              ,           # PUT /repos/{owner}/{repo}/environments/{environment}/secrets/{secret_name}
+                             repo          : str              ,
+                             environment   : str              ,
+                             secret_name   : str              ,
+                             body          : dict             ,
+                             authorization : str = Header(None)
+                       ) -> JSONResponse:
         valid, error_response, pat = self.auth_error_response(authorization)
         if not valid:
             return error_response
@@ -107,7 +107,6 @@ class Routes__GitHub__Env_Secrets(Routes__GitHub__Base):                        
         if not self.state.environment_exists(owner, repo, environment):
             return self.not_found_response()
 
-        body            = await request.json()
         encrypted_value = body.get('encrypted_value', '')
         key_id          = body.get('key_id', '')
 
