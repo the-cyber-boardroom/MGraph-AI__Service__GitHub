@@ -11,12 +11,13 @@ from mgraph_ai_service_github.service.auth.Service__Auth                        
 from mgraph_ai_service_github.service.encryption.Service__Encryption            import Service__Encryption
 from mgraph_ai_service_github.service.github.GitHub__API                        import GitHub__API
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management           import NaCl__Key_Management
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 
 
 class test_GitHub__API__From__Header(TestCase):
 
     @classmethod
-    def setUpClass(cls):                                                                        # Setup test configuration
+    def setUpClass(cls):
         cls.nacl_manager       = NaCl__Key_Management()
         cls.test_keys          = cls.nacl_manager.generate_nacl_keys()
         cls.service_auth       = Service__Auth      (private_key_hex = cls.test_keys.private_key ,
@@ -25,14 +26,17 @@ class test_GitHub__API__From__Header(TestCase):
                                                      public_key_hex  = cls.test_keys.public_key  )
         cls.api_factory        = GitHub__API__From__Header(service_auth = cls.service_auth)
 
-        load_dotenv()
-        cls.github_pat = get_env(ENV_VAR__GIT_HUB__ACCESS_TOKEN)
-        if not cls.github_pat:
-            pytest.skip('Skipping tests because GitHub Access Token is not available')
+        # Setup surrogate
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()
+        cls.github_pat        = cls.surrogate_context.admin_pat()
 
         cls.encrypt_request = Schema__Encryption__Request(value           = cls.github_pat            ,
                                                           encryption_type = Enum__Encryption_Type.TEXT)
         cls.encrypted_pat   = cls.service_encryption.encrypt(cls.encrypt_request).encrypted
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.surrogate_context.teardown()
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # Initialization Tests

@@ -33,6 +33,7 @@ class test_GitHub__Secrets(TestCase):
         cls.api_token         = cls.surrogate_context.admin_pat()
 
         cls.surrogate_context.add_repo(cls.test_repo_owner, cls.test_repo_name)     # Add test repo to surrogate state
+        cls.surrogate_context.add_environment(cls.test_repo_owner, cls.test_repo_name, 'production')
 
 
     def setUp(self):                                                              # Initialize test fixtures
@@ -210,11 +211,11 @@ class test_GitHub__Secrets(TestCase):
         for secret_name in secrets.keys():
             assert self.github_secrets.secret_exists(secret_name) is True
 
-    @pytest.mark.skip("this works but the replace_all=True has the side effect of removing the secrets (which we need at the moment to stay there)")
+
     def test_configure_secrets__replace_all(self):                              # Test replace_all functionality
         # Create initial secrets
         initial_secrets = { f'{self.test_secret_prefix}KEEP'   : 'keep_value'   ,
-                           f'{self.test_secret_prefix}DELETE' : 'delete_value' }
+                            f'{self.test_secret_prefix}DELETE' : 'delete_value' }
 
         self.github_secrets.configure_secrets(initial_secrets)
 
@@ -325,6 +326,7 @@ class test_GitHub__Secrets(TestCase):
     #             raise
 
     def test_list_environment_secrets(self):                                    # Test listing environment secrets
+
         environment = 'production'  # Common environment name
 
         try:
