@@ -35,14 +35,15 @@ from mgraph_ai_service_github.schemas.github.secrets.Schema__GitHub__Response__E
 from mgraph_ai_service_github.service.auth.Service__Auth                                    import Service__Auth
 from mgraph_ai_service_github.service.encryption.Service__Encryption                        import Service__Encryption
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                       import NaCl__Key_Management
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 from mgraph_ai_service_github.utils.testing.Create_GitHub_Test_Data                         import TESTING__ENVIRONMENT__NAME, TESTING__ENV__SECRETS__NAMES, Create_GitHub_Test_Data
 
 
 class test_Routes__GitHub__Secrets__Env(TestCase):
 
     @classmethod
-    def setUpClass(cls):                                                                        # Setup test configuration
-        skip__if_not__in_github_actions()
+    def setUpClass(cls):
+        # Setup NaCl keys for encryption
         cls.nacl_manager       = NaCl__Key_Management()
         cls.test_keys          = cls.nacl_manager.generate_nacl_keys()
         cls.service_auth       = Service__Auth               (private_key_hex = cls.test_keys.private_key ,
@@ -53,23 +54,32 @@ class test_Routes__GitHub__Secrets__Env(TestCase):
         cls.routes             = Routes__GitHub__Secrets__Env(github_api_factory = cls.github_api_factory ,
                                                               service_encryption = cls.service_encryption )
 
-        load_dotenv()
-        cls.github_pat       = get_env(ENV_VAR__GIT_HUB__ACCESS_TOKEN     )
-        cls.repo_owner       = get_env(ENV_VAR__TESTS__GITHUB__REPO_OWNER)
-        cls.repo_name        = get_env(ENV_VAR__TESTS__GITHUB__REPO_NAME )
-        cls.environment_name = TESTING__ENVIRONMENT__NAME
-        if not cls.github_pat or not cls.repo_owner or not cls.repo_name:
-            pytest.skip('Skipping tests because GitHub Access Token or target repo are not available')
+        # Setup surrogate
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()
 
+        # Use fixed test values
+        cls.repo_owner       = 'test-owner'
+        cls.repo_name        = 'test-repo'
+        cls.environment_name = 'test-environment'
+
+        # Add test data to surrogate
+        cls.surrogate_context.add_repo(cls.repo_owner, cls.repo_name)
+        cls.surrogate_context.add_environment(cls.repo_owner, cls.repo_name, cls.environment_name)
+
+        # Add pre-existing secrets that tests expect
+        for secret_name in TESTING__ENV__SECRETS__NAMES:
+            cls.surrogate_context.add_env_secret(cls.repo_owner, cls.repo_name, cls.environment_name, secret_name)
+
+        # Use surrogate PAT and encrypt it
+        cls.github_pat      = cls.surrogate_context.admin_pat()
         cls.encrypt_request = Schema__Encryption__Request(value           = cls.github_pat            ,
                                                           encryption_type = Enum__Encryption_Type.TEXT)
         cls.encrypted_pat   = cls.service_encryption.encrypt(cls.encrypt_request).encrypted
 
-        cls.create_test_data = Create_GitHub_Test_Data()
-        if cls.create_test_data.setup__env_vars_defined_ok() is False:
-            pytest.skip("Skipping test because env vars not defined")
-        # if cls.create_test_data.create_env_secrets() is False:
-        #     pytest.skip("Skipping test because environment secrets could not be created (environment may not exist)")
+    @classmethod
+    def tearDownClass(cls):
+        cls.surrogate_context.teardown()
+
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # Initialization Tests
@@ -211,22 +221,19 @@ class test_Routes__GitHub__Secrets__Env(TestCase):
             assert result.response_context.status_code == Enum__HTTP__Status.CREATED_201
             assert result.response_data.created        is True
 
-        # Verify secret was created
-        with self.create_test_data.github_secrets() as _:
-            secret = _.get_secret_by_scope(secret_name, self.environment_name)
-            assert secret is not None
-            assert secret.get('name') == secret_name
+        # Verify secret was created (via surrogate state)
+        state  = self.surrogate_context.surrogate.state
+        secret = state.get_env_secret(self.repo_owner, self.repo_name, self.environment_name, secret_name)
+        assert secret is not None
+        assert secret.name == secret_name
 
-        # Cleanup: delete the created secret
-        with self.create_test_data.github_secrets() as _:
-            deleted = _.delete_secret_by_scope(secret_name, self.environment_name)
-            assert deleted is True
+        # Cleanup: delete the created secret (via surrogate state)
+        deleted = state.delete_env_secret(self.repo_owner, self.repo_name, self.environment_name, secret_name)
+        assert deleted is True
 
         # Verify secret was deleted
-        with self.create_test_data.github_secrets() as _:
-            secret = _.get_secret_by_scope(secret_name, self.environment_name)
-            assert secret is None
-
+        secret = state.get_env_secret(self.repo_owner, self.repo_name, self.environment_name, secret_name)
+        assert secret is None
     # ═══════════════════════════════════════════════════════════════════════════════
     # update Tests
     # ═══════════════════════════════════════════════════════════════════════════════

@@ -92,8 +92,15 @@ class Routes__GitHub__Repo_Secrets(Routes__GitHub__Base):                       
             return self.not_found_response()
 
         body            = await request.json()
-        encrypted_value = body.get('encrypted_value', '')
-        key_id          = body.get('key_id', '')
+        encrypted_value = body.get('encrypted_value')
+        key_id          = body.get('key_id')
+
+        # Validate required fields
+        if not encrypted_value or not key_id:
+            return JSONResponse(
+                status_code=422,
+                content={"message": "Invalid request. 'encrypted_value' and 'key_id' are required."}
+            )
 
         existing = self.state.get_repo_secret(owner, repo, secret_name)
 

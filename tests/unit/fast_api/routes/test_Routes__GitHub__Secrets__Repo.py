@@ -33,14 +33,15 @@ from mgraph_ai_service_github.schemas.github.secrets.Schema__GitHub__Response__S
 from mgraph_ai_service_github.service.auth.Service__Auth                                            import Service__Auth
 from mgraph_ai_service_github.service.encryption.Service__Encryption                                import Service__Encryption
 from mgraph_ai_service_github.service.encryption.NaCl__Key_Management                               import NaCl__Key_Management
+from mgraph_ai_service_github.surrogates.github.testing.GitHub__API__Surrogate__Test_Context import GitHub__API__Surrogate__Test_Context
 from mgraph_ai_service_github.utils.testing.Create_GitHub_Test_Data                                 import TESTING__REPO__SECRETS__NAMES, Create_GitHub_Test_Data
 
 
 class test_Routes__GitHub__Secrets__Repo(TestCase):
 
     @classmethod
-    def setUpClass(cls):                                                                        # Setup test configuration
-        skip__if_not__in_github_actions()
+    def setUpClass(cls):
+        # Setup NaCl keys for encryption
         cls.nacl_manager       = NaCl__Key_Management()
         cls.test_keys          = cls.nacl_manager.generate_nacl_keys()
         cls.service_auth       = Service__Auth               (private_key_hex = cls.test_keys.private_key ,
@@ -51,19 +52,29 @@ class test_Routes__GitHub__Secrets__Repo(TestCase):
         cls.routes             = Routes__GitHub__Secrets__Repo(github_api_factory = cls.github_api_factory ,
                                                                service_encryption = cls.service_encryption )
 
-        load_dotenv()
-        cls.github_pat = get_env(ENV_VAR__GIT_HUB__ACCESS_TOKEN     )
-        cls.repo_owner = get_env(ENV_VAR__TESTS__GITHUB__REPO_OWNER)
-        cls.repo_name  = get_env(ENV_VAR__TESTS__GITHUB__REPO_NAME )
-        if not cls.github_pat or not cls.repo_owner or not cls.repo_name:
-            pytest.skip('Skipping tests because GitHub Access Token or target repo are not available')
+        # Setup surrogate
+        cls.surrogate_context = GitHub__API__Surrogate__Test_Context().setup()
 
+        # Use fixed test values
+        cls.repo_owner = 'test-owner'
+        cls.repo_name  = 'test-repo'
+
+        # Add test data to surrogate
+        cls.surrogate_context.add_repo(cls.repo_owner, cls.repo_name)
+
+        # Add pre-existing secrets that tests expect
+        for secret_name in TESTING__REPO__SECRETS__NAMES:                                       # or whatever the constant is called
+            cls.surrogate_context.add_secret(cls.repo_owner, cls.repo_name, secret_name)
+
+        # Use surrogate PAT and encrypt it
+        cls.github_pat      = cls.surrogate_context.admin_pat()
         cls.encrypt_request = Schema__Encryption__Request(value           = cls.github_pat            ,
                                                           encryption_type = Enum__Encryption_Type.TEXT)
-        cls.encrypted_pat    = cls.service_encryption.encrypt(cls.encrypt_request).encrypted
-        cls.create_test_data = Create_GitHub_Test_Data()
-        #cls.create_test_data.create_all()              # note: since the repo is quite stable we don't usually need to run this all the time
+        cls.encrypted_pat   = cls.service_encryption.encrypt(cls.encrypt_request).encrypted
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.surrogate_context.teardown()
     # ═══════════════════════════════════════════════════════════════════════════════
     # Initialization Tests
     # ═══════════════════════════════════════════════════════════════════════════════
@@ -200,8 +211,9 @@ class test_Routes__GitHub__Secrets__Repo(TestCase):
             assert result.response_context.status_code == Enum__HTTP__Status.CREATED_201
             assert result.response_data.created        is True
 
-        # Cleanup: delete the created secret
-        assert self.create_test_data.github_secrets().delete_secret(secret_name) is True
+        # Cleanup: delete the created secret (via surrogate state)
+        state = self.surrogate_context.surrogate.state
+        assert state.delete_repo_secret(self.repo_owner, self.repo_name, secret_name) is True
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # update Tests
